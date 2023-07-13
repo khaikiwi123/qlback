@@ -1,4 +1,4 @@
-const Khach = require('../models/Khach');
+const Khach = require("../models/Khach");
 
 module.exports = {
   getKhach: async () => {
@@ -9,13 +9,18 @@ module.exports = {
     const { name, phone, address, status } = JSON.parse(event.body);
 
     if (!name.trim() || !phone.trim() || !address.trim()) {
-      return ("Please fill out all the forms");
+      return "Please fill out all the forms";
     }
 
-    const newCustomer = new Khach({ name: name.trim(), phone: phone.trim(), address: address.trim(), status });
+    const newCustomer = new Khach({
+      name: name.trim(),
+      phone: phone.trim(),
+      address: address.trim(),
+      status,
+    });
     await newCustomer.save();
 
-    return ("Customer created");
+    return "Customer created";
   },
 
   updateKhach: async (event) => {
@@ -30,7 +35,7 @@ module.exports = {
 
     await Khach.findByIdAndUpdate(id, update, { new: true });
 
-    return ("Customer updated");
+    return "Customer updated";
   },
 
   deleteKhach: async (event) => {
@@ -38,6 +43,6 @@ module.exports = {
 
     await Khach.findByIdAndDelete(id);
 
-    return ("Customer deleted");
+    return "Customer deleted";
   },
 };
