@@ -6,40 +6,35 @@ const jwt = require('jsonwebtoken')
 module.exports = {
     register: async(event) =>{
         const {name, email, password, role, phone} = JSON.parse(event.body)
-        const n = name.trim()
-        const e = email.trim().toLowerCase()
-        const p = password.trim()
-        const findOneEmail = await User.findOne({email: e})
-        if (e == "" || p == ""|| n == ""|| phone == ""){
+        if (!name.trim() || !email.trim() || !password.trim() || !phone.trim()){
             return ("Please fill out all the form")
         }
+        const findOneEmail = await User.findOne({email: email.trim().toLowerCase()})
         if (findOneEmail) {
             return ("User already existed, please login.")
         }
-        if(!validator.isEmail(e)){
+        if(!validator.isEmail(email.trim().toLowerCase())){
             return ("Email isn't valid")
         }
-        if(!validator.isStrongPassword(p)){
+        if(!validator.isStrongPassword(password.trim())){
             return ("Password isn't strong enough")
         }
-        if(role !== 'user' && role !== 'admin'){
+        if(role !== 'user' && role !== 'admin' && role !== ''){
             return ("Invalid role")
         }
-        const hashedPassword = await hashPassword(p)
-        const user = new User({name: n, email: e, password: hashedPassword, role, phone})
+        const hashedPassword = await hashPassword(password.trim())
+        const user = new User({name: name.trim(), email: email.trim().toLowerCase(), password: hashedPassword, role, phone: phone.trim()})
         await user.save()
         return ("User created")
 },
 
     login: async (event) => {
         const {email, password } = JSON.parse(event.body)
-        const lowName = email.trim().toLowerCase()
-        const pw = password.trim()
-        const user = await User.findOne({email: lowName})
+        const user = await User.findOne({email: email.trim().toLowerCase()})
         if (!user){
             return ("User's not found")
         }
-        const isMatch = await comparePassword(pw, user.password);
+        const isMatch = await comparePassword(password.trim(), user.password);
         if (!isMatch){
             return ("Invalid Password")
         }
