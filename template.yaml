@@ -1,0 +1,87 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Globals:
+  Api:
+    Cors:
+      AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS'"
+      AllowHeaders: "'content-Type, Authorization'"
+      AllowOrigin: "'http://localhost:3000'"
+      AllowCredentials: true
+Resources:
+  awssamfinal:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      CodeUri: crudfinal/
+      Handler: app.handler
+      Runtime: nodejs18.x
+      Timeout: 300
+      Events:
+        getkhach:
+          Type: Api
+          Properties:
+            Path: /khachs
+            Method: get
+        createkhach:
+          Type: Api
+          Properties:
+            Path: /khachs
+            Method: post
+        updatekhach:
+          Type: Api
+          Properties:
+            Path: /khachs/{id}
+            Method: put
+        deletekhach:
+          Type: Api
+          Properties:
+            Path: /khachs/{id}
+            Method: delete
+        getuser:
+          Type: Api
+          Properties:
+            Path: /users
+            Method: get
+        getone:
+          Type: Api
+          Properties:
+            Path: /users/{id}
+            Method: get
+        createuser:
+          Type: Api
+          Properties:
+            Path: /users
+            Method: post
+        updateuser:
+          Type: Api
+          Properties:
+            Path: /users/{id}
+            Method: put
+        deleteuser:
+          Type: Api
+          Properties:
+            Path: /users/{id}
+            Method: delete
+        register:
+          Type: Api
+          Properties:
+            Path: /auth/register
+            Method: post
+        login:
+          Type: Api
+          Properties:
+            Path: /auth/login
+            Method: post
+        logout:
+          Type: Api
+          Properties:
+            Path: /auth/logout
+            Method: post
+        refresh:
+          Type: Api
+          Properties:
+            Path: /auth/refresh
+            Method: post
+      Environment:
+        Variables:
+          MONGODB_URI: mongodb+srv://khaikiwi:khaikiwi21@cluster0.vcoqi73.mongodb.net/?retryWrites=true&w=majority
+          SECRET: secret
