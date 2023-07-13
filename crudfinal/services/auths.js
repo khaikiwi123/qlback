@@ -60,10 +60,13 @@ module.exports = {
             return ("Not logged in")
         }
         const token = await header.replace(/^Bearer\s+/, "");
-        const decodedToken = jwt.decode(token, process.env.SECRET)
+        const decodedToken = jwt.verify(token, process.env.SECRET)
         const user = await User.findOne({_id: decodedToken.userId})
         if (user.token === ""){
             return ("Already logged out")
+        }
+        if (token !== user.token){
+            return("Token used or invalidated")
         }
         user.token = ""
         await user.save()
