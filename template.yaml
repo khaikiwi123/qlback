@@ -1,5 +1,5 @@
-AWSTemplateFormatVersion: '2010-09-09'
-Transform: 'AWS::Serverless-2016-10-31'
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: "AWS::Serverless-2016-10-31"
 Globals:
   Api:
     Cors:
@@ -9,7 +9,7 @@ Globals:
       AllowCredentials: true
 Resources:
   awssamfinal:
-    Type: 'AWS::Serverless::Function'
+    Type: "AWS::Serverless::Function"
     Properties:
       CodeUri: crudfinal/
       Handler: app.handler
