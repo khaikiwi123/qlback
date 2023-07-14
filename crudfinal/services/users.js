@@ -4,11 +4,11 @@ const validator = require("validator");
 
 module.exports = {
   getUser: async () => {
-    return await User.find().select("-_id -token");
+    return await User.find().select("-token");
   },
   getOne: async (event) => {
     const id = event.pathParameters.id;
-    const user = await User.findById(id).select("-_id -token");
+    const user = await User.findById(id).select("-token");
     return user;
   },
   createUser: async (event) => {
@@ -44,14 +44,23 @@ module.exports = {
   },
   updateUser: async (event) => {
     const id = event.pathParameters.id;
-    const { email, password } = JSON.parse(event.body);
-    await User.findByIdAndUpdate(
-      id,
-      { email: email, password: password },
-      { new: true }
+    const { name, email, password, status, role, phone } = JSON.parse(
+      event.body
     );
-    return "User updated";
-  }, //need more work
+    let update = {};
+
+    if (name && name.trim()) update.name = name.trim();
+    if (email && email.trim().toLowerCase())
+      update.email = email.trim().toLowerCase();
+    if (password && password.trim()) update.password = password.trim();
+    if (phone && phone.trim()) update.phone = phone.trim();
+    if (role) update.role = role;
+    if (status) update.status = status;
+
+    await User.findByIdAndUpdate(id, update, { new: true });
+
+    return "Customer updated";
+  },
   deleteUser: async (event) => {
     const id = event.pathParameters.id;
     await User.findByIdAndDelete(id);

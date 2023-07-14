@@ -43,6 +43,26 @@ module.exports = {
     }
     return user;
   },
+  verifyCurrent: async (event) => {
+    try {
+      const token = await getToken(event);
+      const id = event.pathParameters.id;
+      const current = jwt.verify(token, process.env.SECRET);
+
+      // Allow admins to view other profiles
+      const isAdmin = current.role === "admin";
+      const isCurrentUser = current.userId == id; // This will handle both string and numeric IDs.
+
+      console.log(
+        `current.userId: ${current.userId}, id: ${id}, isAdmin: ${isAdmin}`
+      );
+
+      return isCurrentUser || isAdmin;
+    } catch (error) {
+      console.error("Error verifying token:", error);
+      return false; // If an error occurred (for example, if the token was invalid), we'll return false.
+    }
+  },
 };
 
 const getToken = async (event) => {

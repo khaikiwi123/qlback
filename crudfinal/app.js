@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const crudControl = require("./controllers/crud.js");
 const authControl = require("./controllers/auth.js");
 const userControl = require("./controllers/user.js");
-const { verifyToken, verifyRole } = require("./Utils/auth.js");
+const { verifyToken, verifyRole, verifyCurrent } = require("./Utils/auth.js");
 
 let conn = null;
 
@@ -27,8 +27,9 @@ exports.handler = async (event, context, callback) => {
     case "/khachs/{id}":
       return handleKhachs(event, context, callback);
     case "/users":
+      return handleAllUsers(event, context, callback);
     case "/users/{id}":
-      return handleUsers(event, context, callback);
+      return handleSingleUser(event, context, callback);
     default:
       return createErrorResponse(404, "Path not found");
   }
@@ -69,7 +70,8 @@ const handleLogin = async (event, context, callback) => {
   }
   const refresh = auth.refresh;
   const access = auth.access;
-  return createSuccessResponse({ access: access, refresh: refresh });
+  const id = auth.id;
+  return createSuccessResponse({ access: access, refresh: refresh, id: id });
 };
 const handleAuth = async (event, context, callback) => {
   const auth = await authControl.functions(event, context, callback);
@@ -92,20 +94,41 @@ const handleKhachs = async (event, context, callback) => {
     return createErrorResponse(500, error.message);
   }
 };
-
-const handleUsers = async (event, context, callback) => {
+const handleAllUsers = async (event, context, callback) => {
   const authError = await authenticate(event);
   if (authError) {
     return authError;
   }
+
   const role = await verifyRole(event);
+
   if (role !== "admin") {
-    return createErrorResponse(403, "Not admin authorized");
+    return createErrorResponse(403, "Not authorized");
   }
+
   try {
     const users = await userControl.functions(event, context, callback);
     return createSuccessResponse(users);
   } catch (error) {
-    return createErrorResponse(500, err.message);
+    return createErrorResponse(500, error.message);
+  }
+};
+const handleSingleUser = async (event, context, callback) => {
+  const authError = await authenticate(event);
+  if (authError) {
+    return authError;
+  }
+
+  const isAuthorized = await verifyCurrent(event);
+
+  if (!isAuthorized) {
+    return createErrorResponse(403, "Not authorized");
+  }
+
+  try {
+    const user = await userControl.functions(event, context, callback);
+    return createSuccessResponse(user);
+  } catch (error) {
+    return createErrorResponse(500, error.message);
   }
 };

@@ -53,16 +53,17 @@ module.exports = {
     const aToken = jwt.sign(
       { userId: user._id, role: user.role },
       process.env.SECRET,
-      { expiresIn: "3m" }
+      { expiresIn: "5m" }
     );
     const rToken = jwt.sign({ userId: user._id }, process.env.SECRET, {
-      expiresIn: "7d",
+      expiresIn: "3d",
     });
 
     user.token = rToken;
     await user.save();
 
     return {
+      id: user._id,
       access: aToken,
       refresh: rToken,
     };
@@ -96,10 +97,10 @@ module.exports = {
     const aToken = jwt.sign(
       { userId: user._id, role: user.role },
       process.env.SECRET,
-      { expiresIn: "3m" }
+      { expiresIn: "5m" }
     );
     const rToken = jwt.sign({ userId: user._id }, process.env.SECRET, {
-      expiresIn: "7d",
+      expiresIn: "3d",
     });
     user.token = rToken;
     await user.save();
