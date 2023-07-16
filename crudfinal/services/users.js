@@ -1,5 +1,5 @@
 const User = require("../models/User");
-const { hashPassword } = require("../Utils/auth");
+const { hashPassword, comparePassword } = require("../Utils/auth");
 const validator = require("validator");
 
 module.exports = {
@@ -44,23 +44,40 @@ module.exports = {
   },
   updateUser: async (event) => {
     const id = event.pathParameters.id;
-    const { name, email, password, status, role, phone } = JSON.parse(
-      event.body
-    );
+    const { name, email, oldPassword, newPassword, status, role, phone } = JSON.parse(event.body);
     let update = {};
 
     if (name && name.trim()) update.name = name.trim();
     if (email && email.trim().toLowerCase())
       update.email = email.trim().toLowerCase();
-    if (password && password.trim()) update.password = password.trim();
     if (phone && phone.trim()) update.phone = phone.trim();
     if (role) update.role = role;
     if (status) update.status = status;
+    if (newPassword && newPassword.trim()) {
+      if (!oldPassword || !oldPassword.trim()) {
+        throw new Error("Please fill out all the form.");
+      }
+      if (!validator.isStrongPassword(newPassword.trim())) {
+        return "Password isn't strong enough";
+      }
+      
+      const user = await User.findById(id);
+      const isMatch = await comparePassword(oldPassword, user.password);
+
+      if (isMatch) {
+        update.password = await hashPassword(newPassword.trim()); 
+      } else {
+        throw new Error("Old password is incorrect.");
+      }
+    }
 
     await User.findByIdAndUpdate(id, update, { new: true });
 
-    return "Customer updated";
+    return "user updated";
   },
+
+
+
   deleteUser: async (event) => {
     const id = event.pathParameters.id;
     await User.findByIdAndDelete(id);
