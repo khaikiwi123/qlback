@@ -55,7 +55,7 @@ module.exports = {
     if (status) update.status = status;
     if (newPassword && newPassword.trim()) {
       if (!oldPassword || !oldPassword.trim()) {
-        throw new Error("Please fill out all the form.");
+        return ("Please fill out all the form.");
       }
       if (!validator.isStrongPassword(newPassword.trim())) {
         return "Password isn't strong enough";
@@ -67,7 +67,7 @@ module.exports = {
       if (isMatch) {
         update.password = await hashPassword(newPassword.trim()); 
       } else {
-        throw new Error("Old password is incorrect.");
+        return ("Old password is incorrect")
       }
     }
 
