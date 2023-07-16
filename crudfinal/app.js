@@ -2,7 +2,9 @@ const mongoose = require("mongoose");
 const crudControl = require("./controllers/crud.js");
 const authControl = require("./controllers/auth.js");
 const userControl = require("./controllers/user.js");
-const { verifyToken, verifyRole, verifyCurrent } = require("./Utils/auth.js");
+const { verifyCurrent } = require("./Utils/auth.js");
+const { createErrorResponse, createSuccessResponse } = require("./Utils/response.js");
+const { authenticate, verifyRole } = require("./Utils/authentication.js");
 
 let conn = null;
 
@@ -35,44 +37,15 @@ exports.handler = async (event, context, callback) => {
   }
 };
 
-const createErrorResponse = (statusCode, message) => ({
-  statusCode,
-  headers: headers,
-  body: JSON.stringify({ error: message }),
-});
-
-const createSuccessResponse = (body) => ({
-  statusCode: 200,
-  headers: headers,
-  body: JSON.stringify(body),
-});
-
-const headers = {
-  "Access-Control-Allow-Headers": "content-Type, Authorization",
-  "Access-Control-Allow-Origin": "http://localhost:3000",
-  "Access-Control-Allow-Methods": "POST, GET, PUT, DELETE",
-};
-
-const authenticate = async (event) => {
-  const tokenVerify = await verifyToken(event);
-  if (!tokenVerify || tokenVerify === "expired") {
-    let message =
-      tokenVerify === "expired" ? "Token expired" : "Authentication error";
-    return createErrorResponse(401, message);
-  }
-  return null;
-};
-
 const handleLogin = async (event, context, callback) => {
   const auth = await authControl.functions(event, context, callback);
   if (auth === "User's not found" || auth === "Invalid Password") {
     return createSuccessResponse(auth);
   }
-  const refresh = auth.refresh;
-  const access = auth.access;
-  const id = auth.id;
-  return createSuccessResponse({ access: access, refresh: refresh, id: id });
+  const { refresh, access, id } = auth;
+  return createSuccessResponse({ access, refresh, id });
 };
+
 const handleAuth = async (event, context, callback) => {
   const auth = await authControl.functions(event, context, callback);
   return createSuccessResponse(auth);
@@ -83,10 +56,12 @@ const handleKhachs = async (event, context, callback) => {
   if (authError) {
     return authError;
   }
-  const role = await verifyRole(event);
-  if (role !== "user" && role !== "admin") {
-    return createErrorResponse(403, "Not authorized");
+
+  const roleError = await verifyRole(event, ["user", "admin"]);
+  if (roleError) {
+    return roleError;
   }
+
   try {
     const khachs = await crudControl.functions(event, context, callback);
     return createSuccessResponse(khachs);
@@ -94,16 +69,16 @@ const handleKhachs = async (event, context, callback) => {
     return createErrorResponse(500, error.message);
   }
 };
+
 const handleAllUsers = async (event, context, callback) => {
   const authError = await authenticate(event);
   if (authError) {
     return authError;
   }
 
-  const role = await verifyRole(event);
-
-  if (role !== "admin") {
-    return createErrorResponse(403, "Not authorized");
+  const roleError = await verifyRole(event, ["admin"]);
+  if (roleError) {
+    return roleError;
   }
 
   try {
@@ -113,6 +88,7 @@ const handleAllUsers = async (event, context, callback) => {
     return createErrorResponse(500, error.message);
   }
 };
+
 const handleSingleUser = async (event, context, callback) => {
   const authError = await authenticate(event);
   if (authError) {

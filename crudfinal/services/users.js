@@ -13,7 +13,8 @@ module.exports = {
   },
   createUser: async (event) => {
     const { name, email, password, role, phone } = JSON.parse(event.body);
-    if (!name.trim() || !email.trim() || !password.trim() || !phone.trim()) {
+    const fields = [name, email, password, phone];
+    if (fields.some(field => !field || !field.trim())) {
       return "Please fill out all the form";
     }
     const findOneEmail = await User.findOne({
@@ -28,7 +29,7 @@ module.exports = {
     if (!validator.isStrongPassword(password.trim())) {
       return "Password isn't strong enough";
     }
-    if (role !== "user" && role !== "admin" && role !== "") {
+    if (!["user", "admin", ""].includes(role)) {
       return "Invalid role";
     }
     const hashedPassword = await hashPassword(password.trim());

@@ -10,7 +10,8 @@ const jwt = require("jsonwebtoken");
 module.exports = {
   register: async (event) => {
     const { name, email, password, role, phone } = JSON.parse(event.body);
-    if (!name.trim() || !email.trim() || !password.trim() || !phone.trim()) {
+    const fields = [name, email, password, phone];
+    if (fields.some(field => !field || !field.trim()))  {
       return "Please fill out all the form";
     }
     const findOneEmail = await User.findOne({
