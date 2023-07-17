@@ -4,11 +4,11 @@ const validator = require("validator");
 
 module.exports = {
   getUser: async () => {
-    return await User.find().select("-token");
+    return await User.find().select("-token -password -__v");
   },
   getOne: async (event) => {
     const id = event.pathParameters.id;
-    const user = await User.findById(id).select("-token");
+    const user = await User.findById(id).select("-token -password -__v");
     return user;
   },
   createUser: async (event) => {

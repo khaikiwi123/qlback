@@ -11,7 +11,7 @@ module.exports = {
   register: async (event) => {
     const { name, email, password, role, phone } = JSON.parse(event.body);
     const fields = [name, email, password, phone];
-    if (fields.some(field => !field || !field.trim()))  {
+    if (fields.some((field) => !field || !field.trim())) {
       return "Please fill out all the form";
     }
     const findOneEmail = await User.findOne({
@@ -65,6 +65,7 @@ module.exports = {
 
     return {
       id: user._id,
+      role: user.role,
       access: aToken,
       refresh: rToken,
     };

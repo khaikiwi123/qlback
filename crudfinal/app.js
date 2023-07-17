@@ -3,7 +3,10 @@ const crudControl = require("./controllers/crud.js");
 const authControl = require("./controllers/auth.js");
 const userControl = require("./controllers/user.js");
 const { verifyCurrent } = require("./Utils/auth.js");
-const { createErrorResponse, createSuccessResponse } = require("./Utils/response.js");
+const {
+  createErrorResponse,
+  createSuccessResponse,
+} = require("./Utils/response.js");
 const { authenticate, verifyRole } = require("./Utils/authentication.js");
 
 let conn = null;
@@ -42,8 +45,8 @@ const handleLogin = async (event, context, callback) => {
   if (auth === "User's not found" || auth === "Invalid Password") {
     return createSuccessResponse(auth);
   }
-  const { refresh, access, id } = auth;
-  return createSuccessResponse({ access, refresh, id });
+  const { refresh, access, id, role } = auth;
+  return createSuccessResponse({ access, refresh, id, role });
 };
 
 const handleAuth = async (event, context, callback) => {
