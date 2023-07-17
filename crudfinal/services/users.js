@@ -14,7 +14,7 @@ module.exports = {
   createUser: async (event) => {
     const { name, email, password, role, phone } = JSON.parse(event.body);
     const fields = [name, email, password, phone];
-    if (fields.some(field => !field || !field.trim())) {
+    if (fields.some((field) => !field || !field.trim())) {
       return "Please fill out all the form";
     }
     const findOneEmail = await User.findOne({
@@ -45,7 +45,8 @@ module.exports = {
   },
   updateUser: async (event) => {
     const id = event.pathParameters.id;
-    const { name, email, oldPassword, newPassword, status, role, phone } = JSON.parse(event.body);
+    const { name, email, oldPassword, newPassword, status, role, phone } =
+      JSON.parse(event.body);
     let update = {};
 
     if (name && name.trim()) update.name = name.trim();
@@ -55,20 +56,20 @@ module.exports = {
     if (role) update.role = role;
     if (status) update.status = status;
     if (newPassword && newPassword.trim()) {
-      if (!oldPassword || !oldPassword.trim()) {
-        return ("Please fill out all the form.");
+      if (!oldPassword && !oldPassword.trim()) {
+        return "Please fill out all the form.";
       }
       if (!validator.isStrongPassword(newPassword.trim())) {
         return "Password isn't strong enough";
       }
-      
+
       const user = await User.findById(id);
-      const isMatch = await comparePassword(oldPassword, user.password);
+      const isMatch = await comparePassword(oldPassword.trim(), user.password);
 
       if (isMatch) {
-        update.password = await hashPassword(newPassword.trim()); 
+        update.password = await hashPassword(newPassword.trim());
       } else {
-        return ("Old password is incorrect")
+        return "Old password is incorrect";
       }
     }
 
@@ -76,8 +77,6 @@ module.exports = {
 
     return "user updated";
   },
-
-
 
   deleteUser: async (event) => {
     const id = event.pathParameters.id;
