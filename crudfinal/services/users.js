@@ -54,7 +54,7 @@ module.exports = {
       update.email = email.trim().toLowerCase();
     if (phone && phone.trim()) update.phone = phone.trim();
     if (role) update.role = role;
-    if (status) update.status = status;
+    if (status !== undefined) update.status = status;
     if (newPassword && newPassword.trim()) {
       if (!oldPassword && !oldPassword.trim()) {
         return "Please fill out all the form.";

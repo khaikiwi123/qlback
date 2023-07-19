@@ -42,7 +42,11 @@ exports.handler = async (event, context, callback) => {
 
 const handleLogin = async (event, context, callback) => {
   const auth = await authControl.functions(event, context, callback);
-  if (auth === "User's not found" || auth === "Invalid Password") {
+  if (
+    auth === "User's not found" ||
+    auth === "Invalid Password" ||
+    auth === "Account deactivated, please contact admin"
+  ) {
     return createSuccessResponse(auth);
   }
   const { refresh, access, id, role } = auth;

@@ -51,6 +51,9 @@ module.exports = {
     if (!isMatch) {
       return "Invalid Password";
     }
+    if (user.status !== true) {
+      return "Account deactivated, please contact admin";
+    }
     const aToken = jwt.sign(
       { userId: user._id, role: user.role },
       process.env.SECRET,
