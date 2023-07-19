@@ -31,7 +31,7 @@ module.exports = {
     if (name && name.trim()) update.name = name.trim();
     if (phone && phone.trim()) update.phone = phone.trim();
     if (address && address.trim()) update.address = address.trim();
-    if (status) update.status = status;
+    if (status !== undefined) update.status = status;
 
     await Khach.findByIdAndUpdate(id, update, { new: true });
 

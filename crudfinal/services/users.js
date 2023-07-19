@@ -50,8 +50,12 @@ module.exports = {
     let update = {};
 
     if (name && name.trim()) update.name = name.trim();
-    if (email && email.trim().toLowerCase())
+    if (email && email.trim().toLowerCase()) {
+      if (!validator.isEmail(email.trim().toLowerCase())) {
+        return "Email isn't valid";
+      }
       update.email = email.trim().toLowerCase();
+    }
     if (phone && phone.trim()) update.phone = phone.trim();
     if (role) update.role = role;
     if (status !== undefined) update.status = status;
