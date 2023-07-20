@@ -2,25 +2,33 @@ const Khach = require("../models/Khach");
 
 module.exports = {
   getKhach: async () => {
-    return await Khach.find();
+    try {
+      return await Khach.find();
+    } catch (error) {
+      throw new Error(error.message);
+    }
   },
 
   createKhach: async (event) => {
     const { name, phone, address, status } = JSON.parse(event.body);
 
     if (!name.trim() || !phone.trim() || !address.trim()) {
-      return "Please fill out all the forms";
+      throw new Error("Please fill out all the forms");
     }
 
-    const newCustomer = new Khach({
-      name: name.trim(),
-      phone: phone.trim(),
-      address: address.trim(),
-      status,
-    });
-    await newCustomer.save();
+    try {
+      const newCustomer = new Khach({
+        name: name.trim(),
+        phone: phone.trim(),
+        address: address.trim(),
+        status,
+      });
+      await newCustomer.save();
 
-    return "Customer created";
+      return "Customer created";
+    } catch (error) {
+      throw new Error(error.message);
+    }
   },
 
   updateKhach: async (event) => {
@@ -33,16 +41,22 @@ module.exports = {
     if (address && address.trim()) update.address = address.trim();
     if (status !== undefined) update.status = status;
 
-    await Khach.findByIdAndUpdate(id, update, { new: true });
-
-    return "Customer updated";
+    try {
+      await Khach.findByIdAndUpdate(id, update, { new: true });
+      return "Customer updated";
+    } catch (error) {
+      throw new Error(error.message);
+    }
   },
 
   deleteKhach: async (event) => {
     const id = event.pathParameters.id;
 
-    await Khach.findByIdAndDelete(id);
-
-    return "Customer deleted";
+    try {
+      await Khach.findByIdAndDelete(id);
+      return "Customer deleted";
+    } catch (error) {
+      throw new Error(error.message);
+    }
   },
 };

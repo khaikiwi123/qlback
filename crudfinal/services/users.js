@@ -4,33 +4,43 @@ const validator = require("validator");
 
 module.exports = {
   getUser: async () => {
-    return await User.find().select("-token -password -__v");
+    try {
+      return await User.find().select("-token -password -__v");
+    } catch (error) {
+      throw new Error(error.message);
+    }
   },
+
   getOne: async (event) => {
-    const id = event.pathParameters.id;
-    const user = await User.findById(id).select("-token -password -__v");
-    return user;
+    try {
+      const id = event.pathParameters.id;
+      const user = await User.findById(id).select("-token -password -__v");
+      return user;
+    } catch (error) {
+      throw new Error(error.message);
+    }
   },
+
   createUser: async (event) => {
     const { name, email, password, role, phone } = JSON.parse(event.body);
     const fields = [name, email, password, phone];
     if (fields.some((field) => !field || !field.trim())) {
-      return "Please fill out all the form";
+      throw new Error("Please fill out all the form");
     }
     const findOneEmail = await User.findOne({
       email: email.trim().toLowerCase(),
     });
     if (findOneEmail) {
-      return "User already existed, please login.";
+      throw new Error("User already existed, please login.");
     }
     if (!validator.isEmail(email.trim().toLowerCase())) {
-      return "Email isn't valid";
+      throw new Error("Email isn't valid");
     }
     if (!validator.isStrongPassword(password.trim())) {
-      return "Password isn't strong enough";
+      throw new Error("Password isn't strong enough");
     }
     if (!["user", "admin", ""].includes(role)) {
-      return "Invalid role";
+      throw new Error("Invalid role");
     }
     const hashedPassword = await hashPassword(password.trim());
     const user = new User({
@@ -40,9 +50,15 @@ module.exports = {
       role,
       phone: phone.trim(),
     });
-    await user.save();
-    return "User created";
+
+    try {
+      await user.save();
+      return "User created";
+    } catch (error) {
+      throw new Error(error.message);
+    }
   },
+
   updateUser: async (event) => {
     const id = event.pathParameters.id;
     const { name, email, oldPassword, newPassword, status, role, phone } =
@@ -52,7 +68,7 @@ module.exports = {
     if (name && name.trim()) update.name = name.trim();
     if (email && email.trim().toLowerCase()) {
       if (!validator.isEmail(email.trim().toLowerCase())) {
-        return "Email isn't valid";
+        throw new Error("Email isn't valid");
       }
       update.email = email.trim().toLowerCase();
     }
@@ -61,30 +77,36 @@ module.exports = {
     if (status !== undefined) update.status = status;
     if (newPassword && newPassword.trim()) {
       if (!oldPassword && !oldPassword.trim()) {
-        return "Please fill out all the form.";
+        throw new Error("Please fill out all the form.");
       }
       if (!validator.isStrongPassword(newPassword.trim())) {
-        return "Password isn't strong enough";
+        throw new Error("Password isn't strong enough");
       }
 
       const user = await User.findById(id);
       const isMatch = await comparePassword(oldPassword.trim(), user.password);
 
-      if (isMatch) {
-        update.password = await hashPassword(newPassword.trim());
-      } else {
-        return "Old password is incorrect";
+      if (!isMatch) {
+        throw new Error("Old password is incorrect");
       }
+      update.password = await hashPassword(newPassword.trim());
     }
 
-    await User.findByIdAndUpdate(id, update, { new: true });
-
-    return "user updated";
+    try {
+      await User.findByIdAndUpdate(id, update, { new: true });
+      return "User updated";
+    } catch (error) {
+      throw new Error(error.message);
+    }
   },
 
   deleteUser: async (event) => {
     const id = event.pathParameters.id;
-    await User.findByIdAndDelete(id);
-    return "User deleted or no longer exist";
+    try {
+      await User.findByIdAndDelete(id);
+      return "User deleted or no longer exists";
+    } catch (error) {
+      throw new Error(error.message);
+    }
   },
 };

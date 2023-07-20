@@ -3,19 +3,27 @@ const response = require("./response.js");
 
 module.exports = {
   authenticate: async (event) => {
-    const tokenVerify = await verifyToken(event);
-    if (!tokenVerify || tokenVerify === "expired") {
-      let message = tokenVerify === "expired" ? "Token expired" : "Authentication error";
+    try {
+      await verifyToken(event);
+      return null;
+    } catch (err) {
+      let message =
+        err.message === "Token expired"
+          ? "Token expired"
+          : "Authentication error";
       return response.createErrorResponse(401, message);
     }
-    return null;
   },
 
   verifyRole: async (event, requiredRoles) => {
-    const role = await verifyRole(event);
-    if (!requiredRoles.includes(role)) {
-      return response.createErrorResponse(403, "Not authorized");
+    try {
+      const role = await verifyRole(event);
+      if (!requiredRoles.includes(role)) {
+        throw new Error("Not authorized");
+      }
+      return null;
+    } catch (err) {
+      return response.createErrorResponse(403, err.message);
     }
-    return null;
-  }
+  },
 };

@@ -10,6 +10,9 @@ module.exports = {
   },
   comparePassword: async (password, hashedPassword) => {
     const ismatch = await bcrypt.compare(password, hashedPassword);
+    if (!ismatch) {
+      throw new Error("Invalid password");
+    }
     return ismatch;
   },
   verifyToken: async (event) => {
@@ -19,14 +22,19 @@ module.exports = {
       return true;
     } catch (err) {
       if (err instanceof jwt.TokenExpiredError) {
-        return "expired";
+        throw new Error("Token expired");
+      } else if (err instanceof jwt.JsonWebTokenError) {
+        throw new Error("Invalid token");
       } else {
-        return false;
+        throw new Error("Token verification failed");
       }
     }
   },
   verifyRole: async (event) => {
     const token = await getToken(event);
+    if (!token) {
+      throw new Error("No token provided");
+    }
     const decodedToken = jwt.decode(token, process.env.SECRET);
     const role = decodedToken.role;
     return role;
@@ -35,11 +43,11 @@ module.exports = {
     const token = await getToken(event);
     const refresh = jwt.verify(token, process.env.SECRET);
     if (!refresh) {
-      return "Refresh token is not valid";
+      throw new Error("Refresh token is not valid");
     }
     const user = await User.findOne({ _id: refresh.userId });
     if (token !== user.token) {
-      return "Token used or invalidated";
+      throw new Error("Token used or invalidated");
     }
     return user;
   },
@@ -52,14 +60,13 @@ module.exports = {
       const isAdmin = current.role === "admin";
       const isCurrentUser = current.userId == id;
 
-      console.log(
-        `current.userId: ${current.userId}, id: ${id}, isAdmin: ${isAdmin}`
-      );
-
-      return isCurrentUser || isAdmin;
+      if (!isCurrentUser && !isAdmin) {
+        throw new Error("Unauthorized access");
+      }
+      return true;
     } catch (error) {
       console.error("Error verifying token:", error);
-      return false;
+      throw error;
     }
   },
 };
@@ -67,7 +74,7 @@ module.exports = {
 const getToken = async (event) => {
   const header = event.headers.Authorization;
   if (!header || header === "Bearer null") {
-    return false;
+    throw new Error("Invalid authorization header");
   }
   const token = await header.replace(/^Bearer\s+/, "");
   return token;

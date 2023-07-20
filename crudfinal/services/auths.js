@@ -12,22 +12,22 @@ module.exports = {
     const { name, email, password, role, phone } = JSON.parse(event.body);
     const fields = [name, email, password, phone];
     if (fields.some((field) => !field || !field.trim())) {
-      return "Please fill out all the form";
+      throw new Error("Please fill out all the form");
     }
     const findOneEmail = await User.findOne({
       email: email.trim().toLowerCase(),
     });
     if (findOneEmail) {
-      return "User already existed, please login.";
+      throw new Error("User already existed, please login.");
     }
     if (!validator.isEmail(email.trim().toLowerCase())) {
-      return "Email isn't valid";
+      throw new Error("Email isn't valid");
     }
     if (!validator.isStrongPassword(password.trim())) {
-      return "Password isn't strong enough";
+      throw new Error("Password isn't strong enough");
     }
     if (role !== "user" && role !== "admin" && role !== "") {
-      return "Invalid role";
+      throw new Error("Invalid role");
     }
     const hashedPassword = await hashPassword(password.trim());
     const user = new User({
@@ -45,14 +45,14 @@ module.exports = {
     const { email, password } = JSON.parse(event.body);
     const user = await User.findOne({ email: email.trim().toLowerCase() });
     if (!user) {
-      return "User's not found";
+      throw new Error("User's not found");
     }
     const isMatch = await comparePassword(password.trim(), user.password);
     if (!isMatch) {
-      return "Invalid Password";
+      throw new Error("Invalid Password");
     }
     if (user.status !== true) {
-      return "Account deactivated, please contact admin";
+      throw new Error("Account deactivated, please contact admin");
     }
     const aToken = jwt.sign(
       { userId: user._id, role: user.role },
@@ -76,16 +76,16 @@ module.exports = {
   logout: async (event) => {
     const header = event.headers.Authorization;
     if (!header || header === "Bearer null") {
-      return "Not logged in";
+      throw new Error("Not logged in");
     }
     const token = await header.replace(/^Bearer\s+/, "");
     const decodedToken = jwt.verify(token, process.env.SECRET);
     const user = await User.findOne({ _id: decodedToken.userId });
     if (user.token === "") {
-      return "Already logged out";
+      throw new Error("Already logged out");
     }
     if (token !== user.token) {
-      return "Token used or invalidated";
+      throw new Error("Token used or invalidated");
     }
     user.token = "";
     await user.save();
@@ -93,11 +93,8 @@ module.exports = {
   },
   refresh: async (event) => {
     const user = await verifyRefresh(event);
-    if (
-      user === "Token used or invalidated" ||
-      user === "Refresh token is not valid"
-    ) {
-      return user ? "Token used or invalidated" : "Refresh token is not valid";
+    if (!user) {
+      throw new Error("Invalid token or refresh token");
     }
     const aToken = jwt.sign(
       { userId: user._id, role: user.role },

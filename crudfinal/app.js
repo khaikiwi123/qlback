@@ -41,77 +41,77 @@ exports.handler = async (event, context, callback) => {
 };
 
 const handleLogin = async (event, context, callback) => {
-  const auth = await authControl.functions(event, context, callback);
-  if (
-    auth === "User's not found" ||
-    auth === "Invalid Password" ||
-    auth === "Account deactivated, please contact admin"
-  ) {
-    return createSuccessResponse(auth);
+  try {
+    const auth = await authControl.functions(event, context, callback);
+    const { refresh, access, id, role } = auth;
+    return createSuccessResponse({ access, refresh, id, role });
+  } catch (error) {
+    return createErrorResponse(400, error.message);
   }
-  const { refresh, access, id, role } = auth;
-  return createSuccessResponse({ access, refresh, id, role });
 };
 
 const handleAuth = async (event, context, callback) => {
-  const auth = await authControl.functions(event, context, callback);
-  return createSuccessResponse(auth);
+  try {
+    const auth = await authControl.functions(event, context, callback);
+    return createSuccessResponse(auth);
+  } catch (error) {
+    return createErrorResponse(400, error.message);
+  }
 };
 
 const handleKhachs = async (event, context, callback) => {
-  const authError = await authenticate(event);
-  if (authError) {
-    return authError;
-  }
-
-  const roleError = await verifyRole(event, ["user", "admin"]);
-  if (roleError) {
-    return roleError;
-  }
-
   try {
+    const authError = await authenticate(event);
+    if (authError) {
+      return authError;
+    }
+
+    const roleError = await verifyRole(event, ["user", "admin"]);
+    if (roleError) {
+      return roleError;
+    }
+
     const khachs = await crudControl.functions(event, context, callback);
     return createSuccessResponse(khachs);
   } catch (error) {
-    return createErrorResponse(500, error.message);
+    return createErrorResponse(400, error.message);
   }
 };
 
 const handleAllUsers = async (event, context, callback) => {
-  const authError = await authenticate(event);
-  if (authError) {
-    return authError;
-  }
-
-  const roleError = await verifyRole(event, ["admin"]);
-  if (roleError) {
-    return roleError;
-  }
-
   try {
+    const authError = await authenticate(event);
+    if (authError) {
+      return authError;
+    }
+
+    const roleError = await verifyRole(event, ["admin"]);
+    if (roleError) {
+      return roleError;
+    }
+
     const users = await userControl.functions(event, context, callback);
     return createSuccessResponse(users);
   } catch (error) {
-    return createErrorResponse(500, error.message);
+    return createErrorResponse(400, error.message);
   }
 };
 
 const handleSingleUser = async (event, context, callback) => {
-  const authError = await authenticate(event);
-  if (authError) {
-    return authError;
-  }
-
-  const isAuthorized = await verifyCurrent(event);
-
-  if (!isAuthorized) {
-    return createErrorResponse(403, "Not authorized");
-  }
-
   try {
+    const authError = await authenticate(event);
+    if (authError) {
+      return authError;
+    }
+
+    const isAuthorized = await verifyCurrent(event);
+    if (!isAuthorized) {
+      return createErrorResponse(403, "Not authorized");
+    }
+
     const user = await userControl.functions(event, context, callback);
     return createSuccessResponse(user);
   } catch (error) {
-    return createErrorResponse(500, error.message);
+    return createErrorResponse(400, error.message);
   }
 };
