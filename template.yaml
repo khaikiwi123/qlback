@@ -21,6 +21,11 @@ Resources:
           Properties:
             Path: /khachs
             Method: get
+        getonekhach:
+          Type: Api
+          Properties:
+            Path: /khachs/{id}
+            Method: get
         createkhach:
           Type: Api
           Properties:
@@ -61,11 +66,6 @@ Resources:
           Properties:
             Path: /users/{id}
             Method: delete
-        register:
-          Type: Api
-          Properties:
-            Path: /auth/register
-            Method: post
         login:
           Type: Api
           Properties:
