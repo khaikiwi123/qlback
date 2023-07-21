@@ -4,7 +4,11 @@ module.exports = {
   functions: async (event, context, callback) => {
     switch (event.httpMethod) {
       case "GET":
-        return await get();
+        if (event.resource === "/khachs/{id}") {
+          return await getOneKhach(event);
+        } else {
+          return await get();
+        }
       case "POST":
         return await create(event);
       case "PUT":
@@ -22,6 +26,9 @@ module.exports = {
 
 const get = async () => {
   return await service.getKhach();
+};
+const getOneKhach = async (event) => {
+  return await service.getOneKhach(event);
 };
 const create = async (event) => {
   return await service.createKhach(event);

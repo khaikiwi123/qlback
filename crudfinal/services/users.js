@@ -1,6 +1,7 @@
 const User = require("../models/User");
-const { hashPassword, comparePassword } = require("../Utils/auth");
+const { hashPassword } = require("../Utils/auth");
 const validator = require("validator");
+const bcrypt = require("bcryptjs");
 
 module.exports = {
   getUser: async () => {
@@ -65,31 +66,52 @@ module.exports = {
       JSON.parse(event.body);
     let update = {};
 
+    const currentUser = await User.findById(id);
+    if (!currentUser) {
+      throw new Error("User does not exist.");
+    }
+
     if (name && name.trim()) update.name = name.trim();
     if (email && email.trim().toLowerCase()) {
       if (!validator.isEmail(email.trim().toLowerCase())) {
         throw new Error("Email isn't valid");
       }
+      if (email.trim().toLowerCase() !== currentUser.email) {
+        const findOneEmail = await User.findOne({
+          email: email.trim().toLowerCase(),
+        });
+        if (findOneEmail) {
+          throw new Error(
+            "Email already in use, please choose a different one."
+          );
+        }
+      }
+
       update.email = email.trim().toLowerCase();
     }
     if (phone && phone.trim()) update.phone = phone.trim();
     if (role) update.role = role;
-    if (status !== undefined) update.status = status;
+    if (status !== undefined) {
+      update.status = status;
+      if (!status) {
+        update.token = "";
+      }
+    }
     if (newPassword && newPassword.trim()) {
-      if (!oldPassword && !oldPassword.trim()) {
+      if (!oldPassword || !oldPassword.trim()) {
         throw new Error("Please fill out all the form.");
       }
       if (!validator.isStrongPassword(newPassword.trim())) {
         throw new Error("Password isn't strong enough");
       }
-
-      const user = await User.findById(id);
-      const isMatch = await comparePassword(oldPassword.trim(), user.password);
-
+      const isMatch = await bcrypt.compare(
+        oldPassword.trim(),
+        currentUser.password
+      );
       if (!isMatch) {
         throw new Error("Old password is incorrect");
       }
-      update.password = await hashPassword(newPassword.trim());
+      update.password = await bcrypt.hash(newPassword.trim(), 10);
     }
 
     try {

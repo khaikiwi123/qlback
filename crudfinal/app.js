@@ -23,7 +23,6 @@ exports.handler = async (event, context, callback) => {
 
   switch (event.resource) {
     case "/auth/refresh":
-    case "/auth/register":
     case "/auth/logout":
       return handleAuth(event, context, callback);
     case "/auth/login":

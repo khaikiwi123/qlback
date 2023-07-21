@@ -8,13 +8,6 @@ module.exports = {
     const hashedPassword = await bcrypt.hash(password, salt);
     return hashedPassword;
   },
-  comparePassword: async (password, hashedPassword) => {
-    const ismatch = await bcrypt.compare(password, hashedPassword);
-    if (!ismatch) {
-      throw new Error("Invalid password");
-    }
-    return ismatch;
-  },
   verifyToken: async (event) => {
     try {
       const token = await getToken(event);
@@ -30,15 +23,6 @@ module.exports = {
       }
     }
   },
-  verifyRole: async (event) => {
-    const token = await getToken(event);
-    if (!token) {
-      throw new Error("No token provided");
-    }
-    const decodedToken = jwt.decode(token, process.env.SECRET);
-    const role = decodedToken.role;
-    return role;
-  },
   verifyRefresh: async (event) => {
     const token = await getToken(event);
     const refresh = jwt.verify(token, process.env.SECRET);
@@ -49,7 +33,19 @@ module.exports = {
     if (token !== user.token) {
       throw new Error("Token used or invalidated");
     }
+    if (user.status !== true) {
+      throw new Error("Account deactivated, please contact admin");
+    }
     return user;
+  },
+  verifyRole: async (event) => {
+    const token = await getToken(event);
+    if (!token) {
+      throw new Error("No token provided");
+    }
+    const decodedToken = jwt.decode(token, process.env.SECRET);
+    const role = decodedToken.role;
+    return role;
   },
   verifyCurrent: async (event) => {
     try {

@@ -8,6 +8,14 @@ module.exports = {
       throw new Error(error.message);
     }
   },
+  getOneKhach: async (event) => {
+    try {
+      const id = event.pathParameters.id;
+      return await Khach.findById(id);
+    } catch (error) {
+      throw new Error(error.message);
+    }
+  },
 
   createKhach: async (event) => {
     const { name, phone, address, status } = JSON.parse(event.body);

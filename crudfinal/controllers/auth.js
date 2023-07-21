@@ -3,8 +3,6 @@ const services = require("../services/auths");
 module.exports = {
   functions: async (event, context, callback) => {
     switch (event.resource) {
-      case "/auth/register":
-        return await services.register(event);
       case "/auth/login":
         return services.login(event);
       case "/auth/logout":
