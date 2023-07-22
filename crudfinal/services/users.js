@@ -40,7 +40,7 @@ module.exports = {
     if (!validator.isStrongPassword(password.trim())) {
       throw new Error("Password isn't strong enough");
     }
-    if (!["user", "admin", ""].includes(role)) {
+    if (!["user", "admin"].includes(role)) {
       throw new Error("Invalid role");
     }
     const hashedPassword = await hashPassword(password.trim());
