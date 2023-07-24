@@ -7,7 +7,7 @@ module.exports = {
         if (event.resource === "/users/{id}") {
           return await getOne(event);
         } else {
-          return await get();
+          return await get(event);
         }
       case "POST":
         return await create(event);
@@ -16,10 +16,7 @@ module.exports = {
       case "DELETE":
         return await remove(event);
       default:
-        return {
-          statusCode: 500,
-          body: "wrong method",
-        };
+        throw new Error("Wrong method");
     }
   },
 };
@@ -27,8 +24,9 @@ module.exports = {
 const getOne = async (event) => {
   return await service.getOne(event);
 };
-const get = async () => {
-  return await service.getUser();
+
+const get = async (event) => {
+  return await service.getUser(event);
 };
 const create = async (event) => {
   return await service.createUser(event);

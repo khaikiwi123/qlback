@@ -4,22 +4,33 @@ const validator = require("validator");
 const bcrypt = require("bcryptjs");
 
 module.exports = {
-  getUser: async () => {
+  getUser: async (event) => {
     try {
-      return await User.find().select("-token -password -__v");
+      const total = await User.estimatedDocumentCount();
+      if (!event.queryStringParameters) {
+        const users = await User.find().select("-token -password -__v");
+        return { users: users, total: total };
+      } else {
+        const pageNumber = event.queryStringParameters["pageNumber"];
+        const pageSize = event.queryStringParameters["pageSize"];
+        const users = await User.find()
+          .select("-token -password -__v")
+          .skip((pageNumber - 1) * pageSize)
+          .limit(pageSize);
+        return { users: users, total: total };
+      }
     } catch (error) {
       throw new Error(error.message);
     }
   },
 
   getOne: async (event) => {
-    try {
-      const id = event.pathParameters.id;
-      const user = await User.findById(id).select("-token -password -__v");
-      return user;
-    } catch (error) {
-      throw new Error(error.message);
+    const id = event.pathParameters.id;
+    const user = await User.findById(id).select("-token -password -__v");
+    if (!user) {
+      throw new Error("User doesn't exist");
     }
+    return user;
   },
 
   createUser: async (event) => {
