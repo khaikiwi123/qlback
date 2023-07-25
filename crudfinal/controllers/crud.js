@@ -4,10 +4,10 @@ module.exports = {
   functions: async (event, context, callback) => {
     switch (event.httpMethod) {
       case "GET":
-        if (event.resource === "/khachs/{id}") {
-          return await getOneKhach(event);
+        if (event.resource === "/clients/{id}") {
+          return await getOneClient(event);
         } else {
-          return await get();
+          return await get(event);
         }
       case "POST":
         return await create(event);
@@ -24,18 +24,18 @@ module.exports = {
   },
 };
 
-const get = async () => {
-  return await service.getKhach();
+const get = async (event) => {
+  return await service.getClient(event);
 };
-const getOneKhach = async (event) => {
-  return await service.getOneKhach(event);
+const getOneClient = async (event) => {
+  return await service.getOneClient(event);
 };
 const create = async (event) => {
-  return await service.createKhach(event);
+  return await service.createClient(event);
 };
 const update = async (event) => {
-  return await service.updateKhach(event);
+  return await service.updateClient(event);
 };
 const remove = async (event) => {
-  return await service.deleteKhach(event);
+  return await service.deleteClient(event);
 };

@@ -7,18 +7,43 @@ module.exports = {
   getUser: async (event) => {
     try {
       const total = await User.estimatedDocumentCount();
-      if (!event.queryStringParameters) {
-        const users = await User.find().select("-token -password -__v");
-        return { users: users, total: total };
-      } else {
-        const pageNumber = event.queryStringParameters["pageNumber"];
-        const pageSize = event.queryStringParameters["pageSize"];
-        const users = await User.find()
-          .select("-token -password -__v")
-          .skip((pageNumber - 1) * pageSize)
-          .limit(pageSize);
-        return { users: users, total: total };
+      let query = {};
+
+      const {
+        pageNumber,
+        pageSize,
+        role,
+        status,
+        searchName,
+        searchEmail,
+        searchPhone,
+      } = event.queryStringParameters || {};
+
+      if (role || status || searchName || searchEmail || searchPhone) {
+        query = {
+          ...(role && { role }),
+          ...(status && { status }),
+          ...(searchName && { name: new RegExp(searchName, "i") }),
+          ...(searchEmail && { email: new RegExp(searchEmail, "i") }),
+          ...(searchPhone && { phoneNumber: new RegExp(searchPhone, "i") }),
+        };
       }
+
+      let usersQuery = User.find(query).select("-token -password -__v");
+
+      if (pageNumber && pageSize) {
+        usersQuery = usersQuery
+          .skip((parseInt(pageNumber) - 1) * parseInt(pageSize))
+          .limit(parseInt(pageSize));
+      }
+
+      const users = await usersQuery;
+
+      if (users.length === 0) {
+        throw new Error("No users found");
+      }
+
+      return { users: users, total: total };
     } catch (error) {
       throw new Error(error.message);
     }

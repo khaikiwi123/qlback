@@ -16,30 +16,30 @@ Resources:
       Runtime: nodejs18.x
       Timeout: 300
       Events:
-        getkhach:
+        getclient:
           Type: Api
           Properties:
-            Path: /khachs
+            Path: /clients
             Method: get
-        getonekhach:
+        getoneclient:
           Type: Api
           Properties:
-            Path: /khachs/{id}
+            Path: /clients/{id}
             Method: get
-        createkhach:
+        createclient:
           Type: Api
           Properties:
-            Path: /khachs
+            Path: /clients
             Method: post
-        updatekhach:
+        updateclient:
           Type: Api
           Properties:
-            Path: /khachs/{id}
+            Path: /clients/{id}
             Method: put
-        deletekhach:
+        deleteclient:
           Type: Api
           Properties:
-            Path: /khachs/{id}
+            Path: /clients/{id}
             Method: delete
         getuser:
           Type: Api

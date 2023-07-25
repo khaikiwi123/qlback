@@ -26,7 +26,7 @@ module.exports = {
       return createErrorResponse(400, error.message);
     }
   },
-  handleKhachs: async (event, context, callback) => {
+  handleClients: async (event, context, callback) => {
     try {
       const authError = await authenticate(event);
       if (authError) {
@@ -38,8 +38,8 @@ module.exports = {
         return roleError;
       }
 
-      const khachs = await crudControl.functions(event, context, callback);
-      return createSuccessResponse(khachs);
+      const clients = await crudControl.functions(event, context, callback);
+      return createSuccessResponse(clients);
     } catch (error) {
       return createErrorResponse(400, error.message);
     }
