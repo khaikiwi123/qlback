@@ -4,28 +4,22 @@ const validator = require("validator");
 module.exports = {
   getClient: async (event) => {
     try {
-      const total = await Client.estimatedDocumentCount();
       let query = {};
 
-      const {
-        pageNumber,
-        pageSize,
-        status,
-        searchRep,
-        searchUnit,
-        searchEmail,
-        searchPhone,
-      } = event.queryStringParameters || {};
+      const { pageNumber, pageSize, status, rep, unit, email, phone } =
+        event.queryStringParameters || {};
 
-      if (status || searchRep || searchEmail || searchPhone || searchUnit) {
+      if (status || rep || email || phone || unit) {
         query = {
           ...(status && { status }),
-          ...(searchRep && { represent: new RegExp(searchRep, "i") }),
-          ...(searchEmail && { email: new RegExp(searchEmail, "i") }),
-          ...(searchUnit && { unit: new RegExp(searchUnit, "i") }),
-          ...(searchPhone && { phone: new RegExp(searchPhone, "i") }),
+          ...(rep && { represent: new RegExp(rep, "i") }),
+          ...(email && { email: new RegExp(email, "i") }),
+          ...(unit && { unit: new RegExp(unit, "i") }),
+          ...(phone && { phone: new RegExp(phone, "i") }),
         };
       }
+
+      const total = await Client.countDocuments(query);
 
       let clientsQuery = Client.find(query).select("-__v");
 
@@ -36,10 +30,6 @@ module.exports = {
       }
 
       const clients = await clientsQuery;
-
-      if (clients.length === 0) {
-        throw new Error("No clients found");
-      }
 
       return { clients: clients, total: total };
     } catch (error) {

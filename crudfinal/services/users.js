@@ -6,28 +6,21 @@ const bcrypt = require("bcryptjs");
 module.exports = {
   getUser: async (event) => {
     try {
-      const total = await User.estimatedDocumentCount();
       let query = {};
 
-      const {
-        pageNumber,
-        pageSize,
-        role,
-        status,
-        searchName,
-        searchEmail,
-        searchPhone,
-      } = event.queryStringParameters || {};
+      const { pageNumber, pageSize, role, status, name, email, phone } =
+        event.queryStringParameters || {};
 
-      if (role || status || searchName || searchEmail || searchPhone) {
+      if (role || status || name || email || phone) {
         query = {
           ...(role && { role }),
           ...(status && { status }),
-          ...(searchName && { name: new RegExp(searchName, "i") }),
-          ...(searchEmail && { email: new RegExp(searchEmail, "i") }),
-          ...(searchPhone && { phoneNumber: new RegExp(searchPhone, "i") }),
+          ...(name && { name: new RegExp(name, "i") }),
+          ...(email && { email: new RegExp(email, "i") }),
+          ...(phone && { phoneNumber: new RegExp(phone, "i") }),
         };
       }
+      const total = await User.countDocuments(query);
 
       let usersQuery = User.find(query).select("-token -password -__v");
 
@@ -38,10 +31,6 @@ module.exports = {
       }
 
       const users = await usersQuery;
-
-      if (users.length === 0) {
-        throw new Error("No users found");
-      }
 
       return { users: users, total: total };
     } catch (error) {
