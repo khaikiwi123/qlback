@@ -6,22 +6,33 @@ module.exports = {
     try {
       let query = {};
 
-      const { pageNumber, pageSize, status, rep, unit, email, phone } =
-        event.queryStringParameters || {};
+      const {
+        pageNumber,
+        pageSize,
+        status,
+        represent,
+        unit,
+        email,
+        phone,
+        userId,
+      } = event.queryStringParameters || {};
 
-      if (status || rep || email || phone || unit) {
+      if (status || represent || email || phone || unit || userId) {
         query = {
           ...(status && { status }),
-          ...(rep && { represent: new RegExp(rep, "i") }),
+          ...(represent && { represent: new RegExp(represent, "i") }),
           ...(email && { email: new RegExp(email, "i") }),
           ...(unit && { unit: new RegExp(unit, "i") }),
           ...(phone && { phone: new RegExp(phone, "i") }),
+          ...(userId && { createdBy: new RegExp(userId, "i") }),
         };
       }
 
       const total = await Client.countDocuments(query);
 
-      let clientsQuery = Client.find(query).select("-__v");
+      let clientsQuery = Client.find(query)
+        .select("-__v")
+        .sort({ createdDate: -1 });
 
       if (pageNumber && pageSize) {
         clientsQuery = clientsQuery

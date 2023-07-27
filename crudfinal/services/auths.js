@@ -30,7 +30,7 @@ module.exports = {
     await user.save();
 
     return {
-      id: user._id,
+      id: user.email,
       role: user.role,
       access: aToken,
       refresh: rToken,

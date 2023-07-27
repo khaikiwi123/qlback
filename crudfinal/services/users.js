@@ -2,6 +2,7 @@ const User = require("../models/User");
 const { hashPassword } = require("../Utils/auth");
 const validator = require("validator");
 const bcrypt = require("bcryptjs");
+const { sortedName } = require("../Utils/sort");
 
 module.exports = {
   getUser: async (event) => {
@@ -24,13 +25,16 @@ module.exports = {
 
       let usersQuery = User.find(query).select("-token -password -__v");
 
-      if (pageNumber && pageSize) {
-        usersQuery = usersQuery
-          .skip((parseInt(pageNumber) - 1) * parseInt(pageSize))
-          .limit(parseInt(pageSize));
-      }
+      let users = await usersQuery;
 
-      const users = await usersQuery;
+      users = users.sort(sortedName);
+
+      if (pageNumber && pageSize) {
+        users = users.slice(
+          (parseInt(pageNumber) - 1) * parseInt(pageSize),
+          parseInt(pageNumber) * parseInt(pageSize)
+        );
+      }
 
       return { users: users, total: total };
     } catch (error) {
