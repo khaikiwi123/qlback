@@ -23,7 +23,7 @@ module.exports = {
       const auth = await authControl.functions(event, context, callback);
       return createSuccessResponse(auth);
     } catch (error) {
-      return createErrorResponse(500, error.message);
+      return createErrorResponse(401, error.message);
     }
   },
   handleClients: async (event, context, callback) => {
@@ -69,12 +69,17 @@ module.exports = {
         return authError;
       }
 
-      const isAuthorized = await verifyCurrent(event);
-      if (!isAuthorized) {
+      const current = await verifyCurrent(event);
+      if (!current) {
         return createErrorResponse(403, "Not authorized");
       }
 
-      const user = await userControl.functions(event, context, callback);
+      const user = await userControl.functions(
+        event,
+        context,
+        callback,
+        current
+      );
       return createSuccessResponse(user);
     } catch (error) {
       return createErrorResponse(500, error.message);

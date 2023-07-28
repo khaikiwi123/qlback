@@ -1,7 +1,7 @@
 const service = require("../services/users");
 
 module.exports = {
-  functions: async (event, context, callback) => {
+  functions: async (event, context, callback, current) => {
     switch (event.httpMethod) {
       case "GET":
         if (event.resource === "/users/{id}") {
@@ -12,7 +12,7 @@ module.exports = {
       case "POST":
         return await create(event);
       case "PUT":
-        return await update(event);
+        return await update(event, current);
       case "DELETE":
         return await remove(event);
       default:
@@ -31,8 +31,8 @@ const get = async (event) => {
 const create = async (event) => {
   return await service.createUser(event);
 };
-const update = async (event) => {
-  return await service.updateUser(event);
+const update = async (event, current) => {
+  return await service.updateUser(event, current);
 };
 const remove = async (event) => {
   return await service.deleteUser(event);

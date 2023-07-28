@@ -59,7 +59,7 @@ module.exports = {
       if (!isCurrentUser && !isAdmin) {
         throw new Error("Unauthorized access");
       }
-      return true;
+      return current;
     } catch (error) {
       console.error("Error verifying token:", error);
       throw error;

@@ -92,23 +92,25 @@ module.exports = {
     }
   },
 
-  updateUser: async (event) => {
+  updateUser: async (event, current) => {
     const id = event.pathParameters.id;
     const { name, email, oldPassword, newPassword, status, role, phone } =
       JSON.parse(event.body);
     let update = {};
 
-    const currentUser = await User.findById(id);
-    if (!currentUser) {
+    const userToUpdate = await User.findById(id);
+    if (!userToUpdate) {
       throw new Error("User does not exist.");
     }
+
+    const isAdmin = current.role === "admin";
 
     if (name && name.trim()) update.name = name.trim();
     if (email && email.trim().toLowerCase()) {
       if (!validator.isEmail(email.trim().toLowerCase())) {
         throw new Error("Email isn't valid");
       }
-      if (email.trim().toLowerCase() !== currentUser.email) {
+      if (email.trim().toLowerCase() !== userToUpdate.email) {
         const findOneEmail = await User.findOne({
           email: email.trim().toLowerCase(),
         });
@@ -118,7 +120,6 @@ module.exports = {
           );
         }
       }
-
       update.email = email.trim().toLowerCase();
     }
     if (phone && phone.trim()) update.phone = phone.trim();
@@ -130,7 +131,7 @@ module.exports = {
       }
     }
     if (newPassword && newPassword.trim()) {
-      if (!oldPassword || !oldPassword.trim()) {
+      if (!isAdmin && (!oldPassword || !oldPassword.trim())) {
         throw new Error("Please fill out all the form.");
       }
       if (newPassword.trim().length > 18) {
@@ -139,16 +140,17 @@ module.exports = {
       if (!validator.isStrongPassword(newPassword.trim())) {
         throw new Error("Password isn't strong enough");
       }
-      const isMatch = await bcrypt.compare(
-        oldPassword.trim(),
-        currentUser.password
-      );
-      if (!isMatch) {
-        throw new Error("Old password is incorrect");
+      if (!isAdmin) {
+        const isMatch = await bcrypt.compare(
+          oldPassword.trim(),
+          userToUpdate.password
+        );
+        if (!isMatch) {
+          throw new Error("Old password is incorrect");
+        }
       }
       update.password = await bcrypt.hash(newPassword.trim(), 10);
     }
-
     try {
       await User.findByIdAndUpdate(id, update, { new: true });
       return "User updated";
