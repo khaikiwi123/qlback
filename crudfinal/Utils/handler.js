@@ -12,10 +12,10 @@ module.exports = {
   handleLogin: async (event, context, callback) => {
     try {
       const auth = await authControl.functions(event, context, callback);
-      const { refresh, access, id, role } = auth;
-      return createSuccessResponse({ access, refresh, id, role });
+      const { refresh, access, id, role, user } = auth;
+      return createSuccessResponse({ access, refresh, id, role, user });
     } catch (error) {
-      return createErrorResponse(400, error.message);
+      return createErrorResponse(500, error.message);
     }
   },
   handleAuth: async (event, context, callback) => {
@@ -23,7 +23,7 @@ module.exports = {
       const auth = await authControl.functions(event, context, callback);
       return createSuccessResponse(auth);
     } catch (error) {
-      return createErrorResponse(400, error.message);
+      return createErrorResponse(500, error.message);
     }
   },
   handleClients: async (event, context, callback) => {
@@ -41,7 +41,7 @@ module.exports = {
       const clients = await crudControl.functions(event, context, callback);
       return createSuccessResponse(clients);
     } catch (error) {
-      return createErrorResponse(400, error.message);
+      return createErrorResponse(500, error.message);
     }
   },
   handleAllUsers: async (event, context, callback) => {
@@ -59,7 +59,7 @@ module.exports = {
       const users = await userControl.functions(event, context, callback);
       return createSuccessResponse(users);
     } catch (error) {
-      return createErrorResponse(400, error.message);
+      return createErrorResponse(500, error.message);
     }
   },
   handleSingleUser: async (event, context, callback) => {
@@ -77,7 +77,7 @@ module.exports = {
       const user = await userControl.functions(event, context, callback);
       return createSuccessResponse(user);
     } catch (error) {
-      return createErrorResponse(400, error.message);
+      return createErrorResponse(500, error.message);
     }
   },
 };

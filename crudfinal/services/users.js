@@ -66,6 +66,9 @@ module.exports = {
     if (!validator.isEmail(email.trim().toLowerCase())) {
       throw new Error("Email isn't valid");
     }
+    if (password.trim().length > 18) {
+      throw new Error("Password is too long");
+    }
     if (!validator.isStrongPassword(password.trim())) {
       throw new Error("Password isn't strong enough");
     }
@@ -129,6 +132,9 @@ module.exports = {
     if (newPassword && newPassword.trim()) {
       if (!oldPassword || !oldPassword.trim()) {
         throw new Error("Please fill out all the form.");
+      }
+      if (newPassword.trim().length > 18) {
+        throw new Error("Password is too long");
       }
       if (!validator.isStrongPassword(newPassword.trim())) {
         throw new Error("Password isn't strong enough");
