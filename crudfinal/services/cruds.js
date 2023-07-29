@@ -70,8 +70,11 @@ module.exports = {
     const findOneEmail = await Client.findOne({
       email: email.trim().toLowerCase(),
     });
-    if (findOneEmail || findOneNumber) {
-      throw new Error("Client is already in the system");
+    if (findOneEmail) {
+      throw new Error("Client's email is already in the system");
+    }
+    if (findOneNumber) {
+      throw new Error("Client's number is already in the system");
     }
     if (!validator.isEmail(email.trim().toLowerCase())) {
       throw new Error("Email isn't valid");
