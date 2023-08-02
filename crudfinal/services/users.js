@@ -18,7 +18,7 @@ module.exports = {
           ...(status && { status }),
           ...(name && { name: new RegExp(name, "i") }),
           ...(email && { email: new RegExp(email, "i") }),
-          ...(phone && { phoneNumber: new RegExp(phone, "i") }),
+          ...(phone && { phone: new RegExp(phone, "i") }),
         };
       }
       const total = await User.countDocuments(query);
