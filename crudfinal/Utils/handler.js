@@ -41,9 +41,10 @@ module.exports = {
       const clients = await crudControl.functions(event, context, callback);
       return createSuccessResponse(clients);
     } catch (error) {
-      return createErrorResponse(500, error.message);
+      return createErrorResponse(500, error.message, error.id); // Pass the error's id to createErrorResponse
     }
   },
+
   handleAllUsers: async (event, context, callback) => {
     try {
       const authError = await authenticate(event);

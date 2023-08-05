@@ -65,6 +65,10 @@ module.exports = {
       throw error;
     }
   },
+  decodeToken: async (event) => {
+    const token = await getToken(event);
+    return jwt.verify(token, process.env.SECRET);
+  },
 };
 
 const getToken = async (event) => {

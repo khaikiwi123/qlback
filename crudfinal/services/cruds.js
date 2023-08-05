@@ -1,5 +1,7 @@
 const Client = require("../models/Client");
 const validator = require("validator");
+const { decodeToken } = require("../Utils/auth");
+const User = require("../models/User");
 
 module.exports = {
   getClient: async (event) => {
@@ -50,8 +52,25 @@ module.exports = {
 
   getOneClient: async (event) => {
     try {
-      const id = event.pathParameters.id;
-      return await Client.findById(id);
+      const clientId = event.pathParameters.id;
+      const decodedToken = await decodeToken(event);
+      const userId = decodedToken.userId;
+
+      const user = await User.findById(userId);
+      if (!user) {
+        throw new Error("User not found");
+      }
+
+      const client = await Client.findById(clientId);
+      if (!client) {
+        throw new Error("Client not found");
+      }
+
+      if (client.createdBy !== user.email && user.role !== "admin") {
+        throw new Error("Not authorized");
+      }
+
+      return client;
     } catch (error) {
       throw new Error(error.message);
     }
@@ -66,16 +85,23 @@ module.exports = {
     if (fields.some((field) => !field || !field.trim())) {
       throw new Error("Please fill out all the form");
     }
+
     const findOneNumber = await Client.findOne({ phone: phone.trim() });
     const findOneEmail = await Client.findOne({
       email: email.trim().toLowerCase(),
     });
+
     if (findOneEmail) {
-      throw new Error("Client's email is already in the system");
+      const error = new Error("Client's email is already in the system");
+      error.id = findOneEmail._id; // Attach the client's id to the error
+      throw error;
     }
     if (findOneNumber) {
-      throw new Error("Client's number is already in the system");
+      const error = new Error("Client's number is already in the system");
+      error.id = findOneNumber._id; // Attach the client's id to the error
+      throw error;
     }
+
     if (!validator.isEmail(email.trim().toLowerCase())) {
       throw new Error("Email isn't valid");
     }
@@ -89,6 +115,7 @@ module.exports = {
         createdBy: createdBy.trim(),
         status,
       });
+
       await newClient.save();
 
       return "Client created";
