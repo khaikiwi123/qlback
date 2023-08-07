@@ -2,49 +2,20 @@ const Client = require("../models/Client");
 const validator = require("validator");
 const { decodeToken } = require("../Utils/auth");
 const User = require("../models/User");
+const { getDocuments } = require("../modules/generator");
 
 module.exports = {
   getClient: async (event) => {
     try {
-      let query = {};
-
-      const {
-        pageNumber,
-        pageSize,
-        status,
-        represent,
-        unit,
-        email,
-        phone,
-        userId,
-      } = event.queryStringParameters || {};
-
-      if (status || represent || email || phone || unit || userId) {
-        query = {
-          ...(status && { status }),
-          ...(represent && { represent: new RegExp(represent, "i") }),
-          ...(email && { email: new RegExp(email, "i") }),
-          ...(unit && { unit: new RegExp(unit, "i") }),
-          ...(phone && { phone: new RegExp(phone, "i") }),
-          ...(userId && { createdBy: new RegExp(userId, "i") }),
-        };
-      }
-
-      const total = await Client.countDocuments(query);
-
-      let clientsQuery = Client.find(query)
-        .select("-__v")
-        .sort({ createdDate: -1 });
-
-      if (pageNumber && pageSize) {
-        clientsQuery = clientsQuery
-          .skip((parseInt(pageNumber) - 1) * parseInt(pageSize))
-          .limit(parseInt(pageSize));
-      }
-
-      const clients = await clientsQuery;
-
-      return { clients: clients, total: total };
+      const { documents, total } = await getDocuments(Client, event, [
+        "status",
+        "represent",
+        "org",
+        "email",
+        "phone",
+        "userId",
+      ]);
+      return { clients: documents, total: total };
     } catch (error) {
       throw new Error(error.message);
     }
@@ -66,22 +37,24 @@ module.exports = {
         throw new Error("Client not found");
       }
 
-      if (client.createdBy !== user.email && user.role !== "admin") {
-        throw new Error("Not authorized");
+      if (client.inCharge !== user.email && user.role !== "admin") {
+        const error = new Error("Not authorized");
+        error.inCharge = client.inCharge;
+        throw error;
       }
 
       return client;
     } catch (error) {
-      throw new Error(error.message);
+      throw error;
     }
   },
 
   createClient: async (event) => {
-    const { phone, email, unit, represent, status, createdBy } = JSON.parse(
+    const { phone, email, org, represent, status, inCharge } = JSON.parse(
       event.body
     );
 
-    const fields = [phone, email, unit, represent, createdBy];
+    const fields = [phone, email, org, represent, inCharge];
     if (fields.some((field) => !field || !field.trim())) {
       throw new Error("Please fill out all the form");
     }
@@ -90,16 +63,22 @@ module.exports = {
     const findOneEmail = await Client.findOne({
       email: email.trim().toLowerCase(),
     });
+    const findOneInCharge = await User.findOne({
+      email: inCharge.trim().toLowerCase(),
+    });
 
     if (findOneEmail) {
       const error = new Error("Client's email is already in the system");
-      error.id = findOneEmail._id; // Attach the client's id to the error
+      error.id = findOneEmail._id;
       throw error;
     }
     if (findOneNumber) {
       const error = new Error("Client's number is already in the system");
-      error.id = findOneNumber._id; // Attach the client's id to the error
+      error.id = findOneNumber._id;
       throw error;
+    }
+    if (!findOneInCharge) {
+      throw new Error("Sale user doesn't exist");
     }
 
     if (!validator.isEmail(email.trim().toLowerCase())) {
@@ -108,11 +87,11 @@ module.exports = {
 
     try {
       const newClient = new Client({
-        email: email.trim(),
+        email: email.trim().toLowerCase(),
         phone: phone.trim(),
-        unit: unit.trim(),
+        org: org.trim(),
         represent: represent.trim(),
-        createdBy: createdBy.trim(),
+        inCharge: inCharge.trim().toLowerCase(),
         status,
       });
 
@@ -126,7 +105,7 @@ module.exports = {
 
   updateClient: async (event) => {
     const id = event.pathParameters.id;
-    const { phone, email, unit, represent, status, createdBy } = JSON.parse(
+    const { phone, email, org, represent, status, inCharge } = JSON.parse(
       event.body
     );
     let update = {};
@@ -139,7 +118,11 @@ module.exports = {
         email: email.trim().toLowerCase(),
       });
       if (findOneEmail) {
-        throw new Error("Email already in use, please choose a different one.");
+        const error = new Error(
+          "Email already in use, please choose a different one."
+        );
+        error.id = findOneEmail._id;
+        throw error;
       }
 
       update.email = email.trim().toLowerCase();
@@ -149,17 +132,19 @@ module.exports = {
         phone: phone.trim(),
       });
       if (findOneNumber) {
-        throw new Error(
+        const error = new Error(
           "Phone number already in use, please choose a different one."
         );
+        error.id = findOneNumber._id;
+        throw error;
       }
 
       update.phone = phone.trim();
     }
-    if (unit && unit.trim()) update.unit = unit.trim();
+    if (org && org.trim()) update.org = org.trim();
     if (represent && represent.trim()) update.represent = represent.trim();
-    if (createdBy && createdBy.trim()) update.createdBy = createdBy.trim();
-    if (status !== undefined) update.status = status;
+    if (inCharge && inCharge.trim()) update.inCharge = inCharge.trim();
+    if (status) update.status = status;
 
     try {
       await Client.findByIdAndUpdate(id, update, { new: true });

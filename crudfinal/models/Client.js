@@ -11,7 +11,7 @@ const ClientSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
-  unit: {
+  org: {
     type: String,
     required: true,
   },
@@ -24,10 +24,18 @@ const ClientSchema = new mongoose.Schema({
     default: Date.now,
   },
   status: {
-    type: Boolean,
-    default: false,
+    type: String,
+    enum: [
+      "No contact",
+      "In contact",
+      "Verified needs",
+      "Consulted",
+      "Acquired",
+      "Failed",
+    ],
+    default: "No contact",
   },
-  createdBy: {
+  inCharge: {
     type: String,
     required: true,
   },

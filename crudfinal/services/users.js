@@ -3,45 +3,24 @@ const { hashPassword } = require("../Utils/auth");
 const validator = require("validator");
 const bcrypt = require("bcryptjs");
 const { sortedName } = require("../Utils/sort");
+const { getDocuments } = require("../modules/generator");
 
 module.exports = {
   getUser: async (event) => {
     try {
-      let query = {};
-
-      const { pageNumber, pageSize, role, status, name, email, phone } =
-        event.queryStringParameters || {};
-
-      if (role || status || name || email || phone) {
-        query = {
-          ...(role && { role }),
-          ...(status && { status }),
-          ...(name && { name: new RegExp(name, "i") }),
-          ...(email && { email: new RegExp(email, "i") }),
-          ...(phone && { phone: new RegExp(phone, "i") }),
-        };
-      }
-      const total = await User.countDocuments(query);
-
-      let usersQuery = User.find(query).select("-token -password -__v");
-
-      let users = await usersQuery;
-
-      users = users.sort(sortedName);
-
-      if (pageNumber && pageSize) {
-        users = users.slice(
-          (parseInt(pageNumber) - 1) * parseInt(pageSize),
-          parseInt(pageNumber) * parseInt(pageSize)
-        );
-      }
-
-      return { users: users, total: total };
+      const { documents, total } = await getDocuments(User, event, [
+        "role",
+        "status",
+        "name",
+        "email",
+        "phone",
+      ]);
+      documents.sort(sortedName);
+      return { users: documents, total: total };
     } catch (error) {
       throw new Error(error.message);
     }
   },
-
   getOne: async (event) => {
     const id = event.pathParameters.id;
     const user = await User.findById(id).select("-token -password -__v");
