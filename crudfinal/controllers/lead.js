@@ -1,11 +1,11 @@
-const service = require("../services/cruds.js");
+const service = require("../services/leads.js");
 
 module.exports = {
   functions: async (event, context, callback) => {
     switch (event.httpMethod) {
       case "GET":
-        if (event.resource === "/clients/{id}") {
-          return await getOneClient(event);
+        if (event.resource === "/leads/{id}") {
+          return await getOneLead(event);
         } else {
           return await get(event);
         }
@@ -25,17 +25,17 @@ module.exports = {
 };
 
 const get = async (event) => {
-  return await service.getClient(event);
+  return await service.getLead(event);
 };
-const getOneClient = async (event) => {
-  return await service.getOneClient(event);
+const getOneLead = async (event) => {
+  return await service.getOneLead(event);
 };
 const create = async (event) => {
-  return await service.createClient(event);
+  return await service.createLead(event);
 };
 const update = async (event) => {
-  return await service.updateClient(event);
+  return await service.updateLead(event);
 };
 const remove = async (event) => {
-  return await service.deleteClient(event);
+  return await service.deleteLead(event);
 };

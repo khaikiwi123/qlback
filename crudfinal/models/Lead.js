@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const ClientSchema = new mongoose.Schema({
+const LeadSchema = new mongoose.Schema({
   phone: {
     type: String,
     required: true,
@@ -25,7 +25,13 @@ const ClientSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ["Success", "Failed"],
+    enum: [
+      "No contact",
+      "In contact",
+      "Verified needs",
+      "Consulted",
+      "Success",
+    ],
     default: "No contact",
   },
   inCharge: {
@@ -34,4 +40,4 @@ const ClientSchema = new mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model("Client", ClientSchema);
+module.exports = mongoose.model("Lead", LeadSchema);

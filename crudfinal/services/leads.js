@@ -1,29 +1,30 @@
-const Client = require("../models/Client");
+const Lead = require("../models/Lead");
 const validator = require("validator");
 const { decodeToken } = require("../Utils/auth");
 const User = require("../models/User");
+const Client = require("../models/Client");
 const { getDocuments } = require("../modules/generator");
 
 module.exports = {
-  getClient: async (event) => {
+  getLead: async (event) => {
     try {
-      const { documents, total } = await getDocuments(Client, event, [
+      const { documents, total } = await getDocuments(Lead, event, [
         "status",
-        "represent",
+        "rep",
         "org",
         "email",
         "phone",
-        "userId",
+        "inCharge",
       ]);
-      return { clients: documents, total: total };
+      return { leads: documents, total: total };
     } catch (error) {
       throw new Error(error.message);
     }
   },
 
-  getOneClient: async (event) => {
+  getOneLead: async (event) => {
     try {
-      const clientId = event.pathParameters.id;
+      const leadId = event.pathParameters.id;
       const decodedToken = await decodeToken(event);
       const userId = decodedToken.userId;
 
@@ -32,35 +33,33 @@ module.exports = {
         throw new Error("User not found");
       }
 
-      const client = await Client.findById(clientId);
-      if (!client) {
-        throw new Error("Client not found");
+      const lead = await Lead.findById(leadId);
+      if (!lead) {
+        throw new Error("Lead not found");
       }
 
-      if (client.inCharge !== user.email && user.role !== "admin") {
+      if (lead.inCharge !== user.email && user.role !== "admin") {
         const error = new Error("Not authorized");
-        error.inCharge = client.inCharge;
+        error.inCharge = lead.inCharge;
         throw error;
       }
 
-      return client;
+      return lead;
     } catch (error) {
       throw error;
     }
   },
 
-  createClient: async (event) => {
-    const { phone, email, org, represent, status, inCharge } = JSON.parse(
-      event.body
-    );
+  createLead: async (event) => {
+    const { phone, email, org, rep, status, inCharge } = JSON.parse(event.body);
 
-    const fields = [phone, email, org, represent, inCharge];
+    const fields = [phone, email, org, rep, inCharge];
     if (fields.some((field) => !field || !field.trim())) {
       throw new Error("Please fill out all the form");
     }
 
-    const findOneNumber = await Client.findOne({ phone: phone.trim() });
-    const findOneEmail = await Client.findOne({
+    const findOneNumber = await Lead.findOne({ phone: phone.trim() });
+    const findOneEmail = await Lead.findOne({
       email: email.trim().toLowerCase(),
     });
     const findOneInCharge = await User.findOne({
@@ -68,13 +67,15 @@ module.exports = {
     });
 
     if (findOneEmail) {
-      const error = new Error("Client's email is already in the system");
+      const error = new Error("Lead's email is already in the system");
       error.id = findOneEmail._id;
+      error.inCharge = findOneEmail.inCharge;
       throw error;
     }
     if (findOneNumber) {
-      const error = new Error("Client's number is already in the system");
+      const error = new Error("Lead's number is already in the system");
       error.id = findOneNumber._id;
+      error.inCharge = findOneNumber.inCharge;
       throw error;
     }
     if (!findOneInCharge) {
@@ -86,35 +87,33 @@ module.exports = {
     }
 
     try {
-      const newClient = new Client({
+      const newLead = new Lead({
         email: email.trim().toLowerCase(),
         phone: phone.trim(),
         org: org.trim(),
-        represent: represent.trim(),
+        rep: rep.trim(),
         inCharge: inCharge.trim().toLowerCase(),
         status,
       });
 
-      await newClient.save();
+      await newLead.save();
 
-      return "Client created";
+      return "Lead created";
     } catch (error) {
       throw new Error(error.message);
     }
   },
 
-  updateClient: async (event) => {
+  updateLead: async (event) => {
     const id = event.pathParameters.id;
-    const { phone, email, org, represent, status, inCharge } = JSON.parse(
-      event.body
-    );
+    const { phone, email, org, rep, status, inCharge } = JSON.parse(event.body);
     let update = {};
 
     if (email && email.trim().toLowerCase()) {
       if (!validator.isEmail(email.trim().toLowerCase())) {
         throw new Error("Email isn't valid");
       }
-      const findOneEmail = await Client.findOne({
+      const findOneEmail = await Lead.findOne({
         email: email.trim().toLowerCase(),
       });
       if (findOneEmail) {
@@ -122,13 +121,14 @@ module.exports = {
           "Email already in use, please choose a different one."
         );
         error.id = findOneEmail._id;
+        error.inCharge = findOneEmail.inCharge;
         throw error;
       }
 
       update.email = email.trim().toLowerCase();
     }
     if (phone && phone.trim()) {
-      const findOneNumber = await Client.findOne({
+      const findOneNumber = await Lead.findOne({
         phone: phone.trim(),
       });
       if (findOneNumber) {
@@ -136,29 +136,47 @@ module.exports = {
           "Phone number already in use, please choose a different one."
         );
         error.id = findOneNumber._id;
+        error.inCharge = findOneNumber.inCharge;
         throw error;
       }
 
       update.phone = phone.trim();
     }
     if (org && org.trim()) update.org = org.trim();
-    if (represent && represent.trim()) update.represent = represent.trim();
+    if (rep && rep.trim()) update.rep = rep.trim();
     if (inCharge && inCharge.trim()) update.inCharge = inCharge.trim();
     if (status) update.status = status;
 
     try {
-      await Client.findByIdAndUpdate(id, update, { new: true });
-      return "Customer updated";
+      let leadData = await Lead.findById(id);
+
+      if (!leadData) {
+        throw new Error("Lead not found");
+      }
+
+      if (status === "Success") {
+        const clientData = leadData.toObject();
+        clientData.status = "Success";
+
+        const client = new Client(clientData);
+        await client.save();
+
+        await Lead.findByIdAndDelete(id);
+        return "Lead moved to Client";
+      } else {
+        await Lead.findByIdAndUpdate(id, { status }, { new: true });
+        return "Customer updated";
+      }
     } catch (error) {
       throw new Error(error.message);
     }
   },
 
-  deleteClient: async (event) => {
+  deleteLead: async (event) => {
     const id = event.pathParameters.id;
 
     try {
-      await Client.findByIdAndDelete(id);
+      await Lead.findByIdAndDelete(id);
       return "Customer deleted";
     } catch (error) {
       throw new Error(error.message);

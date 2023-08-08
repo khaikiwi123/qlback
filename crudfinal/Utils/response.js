@@ -8,7 +8,7 @@ module.exports = {
   createErrorResponse: (statusCode, message, id, inCharge) => ({
     statusCode,
     headers,
-    body: JSON.stringify({ error: message, clientId: id, incharge: inCharge }),
+    body: JSON.stringify({ error: message, leadId: id, incharge: inCharge }),
   }),
   createSuccessResponse: (body) => ({
     statusCode: 200,
