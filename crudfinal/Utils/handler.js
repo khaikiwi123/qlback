@@ -1,5 +1,6 @@
 const authControl = require("../controllers/auth.js");
 const leadControl = require("../controllers/lead.js");
+const clientControl = require("../controllers/client.js");
 const userControl = require("../controllers/user.js");
 const { verifyCurrent } = require("../Utils/auth.js");
 const { authenticate, verifyRole } = require("../Utils/authentication.js");
@@ -39,6 +40,25 @@ module.exports = {
       }
 
       const leads = await leadControl.functions(event, context, callback);
+      return createSuccessResponse(leads);
+    } catch (error) {
+      console.log(error);
+      return createErrorResponse(500, error.message, error.id, error.inCharge);
+    }
+  },
+  handleClients: async (event, context, callback) => {
+    try {
+      const authError = await authenticate(event);
+      if (authError) {
+        return authError;
+      }
+
+      const roleError = await verifyRole(event, ["user", "admin"]);
+      if (roleError) {
+        return roleError;
+      }
+
+      const leads = await clientControl.functions(event, context, callback);
       return createSuccessResponse(leads);
     } catch (error) {
       console.log(error);

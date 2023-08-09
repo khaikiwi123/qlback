@@ -5,6 +5,7 @@ const {
   handleLeads,
   handleAllUsers,
   handleSingleUser,
+  handleClients,
 } = require("./Utils/handler");
 const { createErrorResponse } = require("./Utils/response.js");
 
@@ -29,6 +30,9 @@ exports.handler = async (event, context, callback) => {
     case "/leads":
     case "/leads/{id}":
       return handleLeads(event, context, callback);
+    case "/clients":
+    case "/clients/{id}":
+      return handleClients(event, context, callback);
     case "/users":
       return handleAllUsers(event, context, callback);
     case "/users/{id}":

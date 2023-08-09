@@ -1,8 +1,7 @@
 const Client = require("../models/Client");
+const Lead = require("../models/Lead");
 const validator = require("validator");
-const { decodeToken } = require("../Utils/auth");
-const User = require("../models/User");
-const { getDocuments } = require("../modules/generator");
+const { getDocuments, getOne } = require("../modules/generator");
 
 module.exports = {
   getClient: async (event) => {
@@ -22,85 +21,7 @@ module.exports = {
   },
 
   getOneClient: async (event) => {
-    try {
-      const clientId = event.pathParameters.id;
-      const decodedToken = await decodeToken(event);
-      const userId = decodedToken.userId;
-
-      const user = await User.findById(userId);
-      if (!user) {
-        throw new Error("User not found");
-      }
-
-      const client = await Client.findById(clientId);
-      if (!client) {
-        throw new Error("Client not found");
-      }
-
-      if (client.inCharge !== user.email && user.role !== "admin") {
-        const error = new Error("Not authorized");
-        error.inCharge = client.inCharge;
-        throw error;
-      }
-
-      return client;
-    } catch (error) {
-      throw error;
-    }
-  },
-
-  createClient: async (event) => {
-    const { phone, email, org, rep, status, inCharge } = JSON.parse(event.body);
-
-    const fields = [phone, email, org, rep, inCharge];
-    if (fields.some((field) => !field || !field.trim())) {
-      throw new Error("Please fill out all the form");
-    }
-
-    const findOneNumber = await Client.findOne({ phone: phone.trim() });
-    const findOneEmail = await Client.findOne({
-      email: email.trim().toLowerCase(),
-    });
-    const findOneInCharge = await User.findOne({
-      email: inCharge.trim().toLowerCase(),
-    });
-
-    if (findOneEmail) {
-      const error = new Error("Client's email is already in the system");
-      error.id = findOneEmail._id;
-      error.inCharge = findOneEmail.inCharge;
-      throw error;
-    }
-    if (findOneNumber) {
-      const error = new Error("Client's number is already in the system");
-      error.id = findOneNumber._id;
-      error.inCharge = findOneNumber.inCharge;
-      throw error;
-    }
-    if (!findOneInCharge) {
-      throw new Error("Sale user doesn't exist");
-    }
-
-    if (!validator.isEmail(email.trim().toLowerCase())) {
-      throw new Error("Email isn't valid");
-    }
-
-    try {
-      const newClient = new Client({
-        email: email.trim().toLowerCase(),
-        phone: phone.trim(),
-        org: org.trim(),
-        rep: rep.trim(),
-        inCharge: inCharge.trim().toLowerCase(),
-        status,
-      });
-
-      await newClient.save();
-
-      return "Client created";
-    } catch (error) {
-      throw new Error(error.message);
-    }
+    return await getOne(event, Client, "Client");
   },
 
   updateClient: async (event) => {
@@ -145,10 +66,26 @@ module.exports = {
     if (rep && rep.trim()) update.rep = rep.trim();
     if (inCharge && inCharge.trim()) update.inCharge = inCharge.trim();
     if (status) update.status = status;
-
     try {
-      await Client.findByIdAndUpdate(id, update, { new: true });
-      return "Customer updated";
+      let clientData = await Client.findById(id);
+
+      if (!clientData) {
+        throw new Error("Lead not found");
+      }
+
+      if (status === "Failed") {
+        const leadData = clientData.toObject();
+        leadData.status = "Consulted";
+
+        const lead = new Lead(clientData);
+        await lead.save();
+
+        await Client.findByIdAndDelete(id);
+        return "Client moved to Lead";
+      } else {
+        await Client.findByIdAndUpdate(id, { status }, { new: true });
+        return "Client updated";
+      }
     } catch (error) {
       throw new Error(error.message);
     }

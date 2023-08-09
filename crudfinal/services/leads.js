@@ -1,9 +1,8 @@
 const Lead = require("../models/Lead");
 const validator = require("validator");
-const { decodeToken } = require("../Utils/auth");
 const User = require("../models/User");
 const Client = require("../models/Client");
-const { getDocuments } = require("../modules/generator");
+const { getDocuments, getOne } = require("../modules/generator");
 
 module.exports = {
   getLead: async (event) => {
@@ -23,31 +22,7 @@ module.exports = {
   },
 
   getOneLead: async (event) => {
-    try {
-      const leadId = event.pathParameters.id;
-      const decodedToken = await decodeToken(event);
-      const userId = decodedToken.userId;
-
-      const user = await User.findById(userId);
-      if (!user) {
-        throw new Error("User not found");
-      }
-
-      const lead = await Lead.findById(leadId);
-      if (!lead) {
-        throw new Error("Lead not found");
-      }
-
-      if (lead.inCharge !== user.email && user.role !== "admin") {
-        const error = new Error("Not authorized");
-        error.inCharge = lead.inCharge;
-        throw error;
-      }
-
-      return lead;
-    } catch (error) {
-      throw error;
-    }
+    return await getOne(event, Lead, "Lead");
   },
 
   createLead: async (event) => {
