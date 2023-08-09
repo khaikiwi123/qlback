@@ -1,4 +1,5 @@
 const validator = require("validator");
+const { hashPassword } = require("./auth");
 
 module.exports = {
   validateEmail: async (email, Model) => {
@@ -26,5 +27,15 @@ module.exports = {
       throw error;
     }
     return phone.trim();
+  },
+  validatePassword: async (password) => {
+    if (password.trim().length > 18) {
+      throw new Error("Password is too long");
+    }
+    if (!validator.isStrongPassword(password.trim())) {
+      throw new Error("Password isn't strong enough");
+    }
+
+    return await hashPassword(password.trim());
   },
 };

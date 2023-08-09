@@ -16,6 +16,31 @@ Resources:
       Runtime: nodejs18.x
       Timeout: 300
       Events:
+        getlead:
+          Type: Api
+          Properties:
+            Path: /leads
+            Method: get
+        getonelead:
+          Type: Api
+          Properties:
+            Path: /leads/{id}
+            Method: get
+        createlead:
+          Type: Api
+          Properties:
+            Path: /leads
+            Method: post
+        updatelead:
+          Type: Api
+          Properties:
+            Path: /leads/{id}
+            Method: put
+        deletelead:
+          Type: Api
+          Properties:
+            Path: /leads/{id}
+            Method: delete
         getclient:
           Type: Api
           Properties:
@@ -26,11 +51,6 @@ Resources:
           Properties:
             Path: /clients/{id}
             Method: get
-        createclient:
-          Type: Api
-          Properties:
-            Path: /clients
-            Method: post
         updateclient:
           Type: Api
           Properties:

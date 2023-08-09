@@ -1,9 +1,12 @@
 const User = require("../models/User");
-const { hashPassword } = require("../Utils/auth");
-const validator = require("validator");
 const bcrypt = require("bcryptjs");
 const { sortedName } = require("../Utils/sort");
-const { getDocuments } = require("../modules/generator");
+const { getDocuments, deleteOne, createOne } = require("../modules/generator");
+const {
+  validateEmail,
+  validatePhone,
+  validatePassword,
+} = require("../Utils/validate");
 
 module.exports = {
   getUser: async (event) => {
@@ -31,44 +34,8 @@ module.exports = {
   },
 
   createUser: async (event) => {
-    const { name, email, password, role, phone } = JSON.parse(event.body);
-    const fields = [name, email, password, phone];
-    if (fields.some((field) => !field || !field.trim())) {
-      throw new Error("Please fill out all the form");
-    }
-    const findOneEmail = await User.findOne({
-      email: email.trim().toLowerCase(),
-    });
-    if (findOneEmail) {
-      throw new Error("User already existed, please login.");
-    }
-    if (!validator.isEmail(email.trim().toLowerCase())) {
-      throw new Error("Email isn't valid");
-    }
-    if (password.trim().length > 18) {
-      throw new Error("Password is too long");
-    }
-    if (!validator.isStrongPassword(password.trim())) {
-      throw new Error("Password isn't strong enough");
-    }
-    if (!["user", "admin"].includes(role)) {
-      throw new Error("Invalid role");
-    }
-    const hashedPassword = await hashPassword(password.trim());
-    const user = new User({
-      name: name.trim(),
-      email: email.trim().toLowerCase(),
-      password: hashedPassword,
-      role,
-      phone: phone.trim(),
-    });
-
-    try {
-      await user.save();
-      return "User created";
-    } catch (error) {
-      throw new Error(error.message);
-    }
+    const inputs = ["name", "email", "password", "phone", "role"];
+    return await createOne(event, inputs, User);
   },
 
   updateUser: async (event, current) => {
@@ -77,59 +44,48 @@ module.exports = {
       JSON.parse(event.body);
     let update = {};
 
-    const userToUpdate = await User.findById(id);
-    if (!userToUpdate) {
+    const user = await User.findById(id);
+    if (!user) {
       throw new Error("User does not exist.");
     }
 
     const isAdmin = current.role === "admin";
 
     if (name && name.trim()) update.name = name.trim();
-    if (email && email.trim().toLowerCase()) {
-      if (!validator.isEmail(email.trim().toLowerCase())) {
-        throw new Error("Email isn't valid");
-      }
-      if (email.trim().toLowerCase() !== userToUpdate.email) {
-        const findOneEmail = await User.findOne({
-          email: email.trim().toLowerCase(),
-        });
-        if (findOneEmail) {
-          throw new Error(
-            "Email already in use, please choose a different one."
-          );
-        }
-      }
+
+    if (email && email.trim().toLowerCase() !== user.email) {
+      await validateEmail(email, User);
       update.email = email.trim().toLowerCase();
     }
-    if (phone && phone.trim()) update.phone = phone.trim();
+
+    if (phone && phone.trim()) {
+      update.phone = await validatePhone(phone, User);
+    }
+
     if (role) update.role = role;
+
     if (status !== undefined) {
       update.status = status;
       if (!status) {
         update.token = "";
       }
     }
+
     if (newPassword && newPassword.trim()) {
-      if (!isAdmin && (!oldPassword || !oldPassword.trim())) {
-        throw new Error("Please fill out all the form.");
-      }
-      if (newPassword.trim().length > 18) {
-        throw new Error("Password is too long");
-      }
-      if (!validator.isStrongPassword(newPassword.trim())) {
-        throw new Error("Password isn't strong enough");
-      }
+      validatePassword(newPassword);
+
       if (!isAdmin) {
-        const isMatch = await bcrypt.compare(
-          oldPassword.trim(),
-          userToUpdate.password
-        );
+        if (!oldPassword || !oldPassword.trim()) {
+          throw new Error("Please fill out all the form.");
+        }
+        const isMatch = await bcrypt.compare(oldPassword.trim(), user.password);
         if (!isMatch) {
           throw new Error("Old password is incorrect");
         }
       }
       update.password = await bcrypt.hash(newPassword.trim(), 10);
     }
+
     try {
       await User.findByIdAndUpdate(id, update, { new: true });
       return "User updated";
@@ -139,12 +95,6 @@ module.exports = {
   },
 
   deleteUser: async (event) => {
-    const id = event.pathParameters.id;
-    try {
-      await User.findByIdAndDelete(id);
-      return "User deleted or no longer exists";
-    } catch (error) {
-      throw new Error(error.message);
-    }
+    return await deleteOne(event, User);
   },
 };
