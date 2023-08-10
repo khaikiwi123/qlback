@@ -5,10 +5,15 @@ const headers = {
 };
 
 module.exports = {
-  createErrorResponse: (statusCode, message, id, inCharge) => ({
+  createErrorResponse: (statusCode, message, id, inCharge, type) => ({
     statusCode,
     headers,
-    body: JSON.stringify({ error: message, leadId: id, incharge: inCharge }),
+    body: JSON.stringify({
+      error: message,
+      id: id,
+      incharge: inCharge,
+      type: type,
+    }),
   }),
   createSuccessResponse: (body) => ({
     statusCode: 200,

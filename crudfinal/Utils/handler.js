@@ -43,7 +43,13 @@ module.exports = {
       return createSuccessResponse(leads);
     } catch (error) {
       console.log(error);
-      return createErrorResponse(500, error.message, error.id, error.inCharge);
+      return createErrorResponse(
+        500,
+        error.message,
+        error.id,
+        error.inCharge,
+        error.type
+      );
     }
   },
   handleClients: async (event, context, callback) => {
@@ -62,7 +68,13 @@ module.exports = {
       return createSuccessResponse(leads);
     } catch (error) {
       console.log(error);
-      return createErrorResponse(500, error.message, error.id, error.inCharge);
+      return createErrorResponse(
+        500,
+        error.message,
+        error.id,
+        error.inCharge,
+        error.type
+      );
     }
   },
 

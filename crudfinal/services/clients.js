@@ -1,6 +1,5 @@
 const Client = require("../models/Client");
 const Lead = require("../models/Lead");
-const validator = require("validator");
 const {
   getDocuments,
   getOne,

@@ -87,7 +87,14 @@ module.exports = {
     if (inputs.includes("password")) {
       data.password = await validatePassword(data.password);
     }
-
+    if (inputs.includes("inCharge")) {
+      const findInCharge = await User.findOne({
+        email: data.inCharge.trim().toLowerCase(),
+      });
+      if (!findInCharge) {
+        throw new Error("Sale user doesn't exist");
+      }
+    }
     if (data.role && !["user", "admin"].includes(data.role)) {
       throw new Error("Invalid role");
     }
@@ -112,10 +119,10 @@ module.exports = {
       if (value) {
         switch (field) {
           case "email":
-            update.email = await validateEmail(value, Model);
+            update.email = await validateEmail(value, Model, MoveModel);
             break;
           case "phone":
-            update.phone = await validatePhone(value, Model);
+            update.phone = await validatePhone(value, Model, MoveModel);
             break;
           default:
             update[field] = typeof value === "string" ? value.trim() : value;
@@ -137,10 +144,13 @@ module.exports = {
         const newInstance = new MoveModel(newData);
         await newInstance.save();
 
-        await Model.findByIdAndDelete(id);
-        return `${Model.modelName} moved to ${MoveModel.modelName}`;
+        return `${Model.modelName} copied to ${MoveModel.modelName}`;
       } else {
         await Model.findByIdAndUpdate(id, update, { new: true });
+
+        if (await MoveModel.findById(id)) {
+          await MoveModel.findByIdAndUpdate(id, update, { new: true });
+        }
         return `${Model.modelName} updated`;
       }
     } catch (error) {
