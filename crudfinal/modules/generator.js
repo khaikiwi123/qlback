@@ -7,7 +7,7 @@ const {
 const User = require("../models/User");
 
 module.exports = {
-  getDocuments: async (Model, event, parameters) => {
+  getDocuments: async (Model, event, parameters, sort = null) => {
     let query = {};
     const { pageNumber, pageSize, ...fields } =
       event.queryStringParameters || {};
@@ -34,6 +34,10 @@ module.exports = {
     const total = await Model.countDocuments(query);
 
     let modelQuery = Model.find(query);
+
+    if (sort) {
+      modelQuery = modelQuery.sort(sort);
+    }
 
     if (pageNumber && pageSize) {
       modelQuery = modelQuery
@@ -136,27 +140,30 @@ module.exports = {
       if (!modelData) {
         throw new Error("Data not found");
       }
-
+      if (data.status && modelData.status !== data.status) {
+        update.statusUpdate = Date.now();
+      }
       if (data.status === statusConfig.trigger) {
         const newData = modelData.toObject();
         newData.status = statusConfig.movingStatus;
 
         const newInstance = new MoveModel(newData);
         await newInstance.save();
-
-        return `${Model.modelName} copied to ${MoveModel.modelName}`;
-      } else {
-        await Model.findByIdAndUpdate(id, update, { new: true });
-
-        if (await MoveModel.findById(id)) {
-          await MoveModel.findByIdAndUpdate(id, update, { new: true });
-        }
-        return `${Model.modelName} updated`;
+        update.status = statusConfig.movingStatus;
       }
+
+      await Model.findByIdAndUpdate(id, update, { new: true });
+
+      if (await MoveModel.findById(id)) {
+        await MoveModel.findByIdAndUpdate(id, update, { new: true });
+      }
+
+      return `${Model.modelName} updated`;
     } catch (error) {
       throw new Error(error.message);
     }
   },
+
   deleteOne: async (event, Model) => {
     const id = event.pathParameters.id;
 
