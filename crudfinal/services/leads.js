@@ -11,14 +11,12 @@ const {
 module.exports = {
   getLead: async (event) => {
     try {
-      const { documents, total } = await getDocuments(Lead, event, [
-        "status",
-        "rep",
-        "org",
-        "email",
-        "phone",
-        "inCharge",
-      ]);
+      const { documents, total } = await getDocuments(
+        Lead,
+        event,
+        ["status", "rep", "org", "email", "phone", "inCharge"],
+        { createdDate: -1 }
+      );
       return { leads: documents, total: total };
     } catch (error) {
       throw new Error(error.message);

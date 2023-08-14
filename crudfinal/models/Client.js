@@ -25,7 +25,13 @@ const ClientSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ["Success", "Failed"],
+    enum: [
+      "No contact",
+      "In contact",
+      "Verified needs",
+      "Consulted",
+      "Success",
+    ],
     default: "No contact",
   },
   inCharge: {

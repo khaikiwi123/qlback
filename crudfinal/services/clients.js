@@ -10,14 +10,12 @@ const {
 module.exports = {
   getClient: async (event) => {
     try {
-      const { documents, total } = await getDocuments(Client, event, [
-        "status",
-        "rep",
-        "org",
-        "email",
-        "phone",
-        "inCharge",
-      ]);
+      const { documents, total } = await getDocuments(
+        Client,
+        event,
+        ["status", "rep", "org", "email", "phone", "inCharge"],
+        { createdDate: -1 }
+      );
       return { clients: documents, total: total };
     } catch (error) {
       throw new Error(error.message);
@@ -31,7 +29,7 @@ module.exports = {
   updateClient: async (event) => {
     const inputs = ["phone", "email", "org", "rep", "status", "inCharge"];
     const status = {
-      trigger: "Failed",
+      trigger: "",
       movingStatus: "Consulted",
     };
     return await updateOne(event, inputs, Client, status, Lead);
