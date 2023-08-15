@@ -18,7 +18,7 @@ module.exports = {
       throw new Error("Account deactivated, please contact admin");
     }
     const aToken = jwt.sign(
-      { userId: user._id, role: user.role },
+      { userId: user._id, role: user.role, email: user.email },
       process.env.SECRET,
       { expiresIn: "5m" }
     );
@@ -58,7 +58,7 @@ module.exports = {
   refresh: async (event) => {
     const user = await verifyRefresh(event);
     const aToken = jwt.sign(
-      { userId: user._id, role: user.role },
+      { userId: user._id, role: user.role, email: user.email },
       process.env.SECRET,
       { expiresIn: "5m" }
     );

@@ -32,13 +32,13 @@ module.exports = {
     return await createOne(event, inputs, Lead);
   },
 
-  updateLead: async (event) => {
+  updateLead: async (event, userEmail) => {
     const inputs = ["phone", "email", "org", "rep", "status", "inCharge"];
     const status = {
       trigger: "Success",
       movingStatus: "Success",
     };
-    return await updateOne(event, inputs, Lead, status, Client);
+    return await updateOne(event, inputs, Lead, status, Client, userEmail);
   },
   deleteLead: async (event) => {
     return await deleteOne(event, Lead);

@@ -41,6 +41,11 @@ Resources:
           Properties:
             Path: /leads/{id}
             Method: delete
+        leadlog:
+          Type: Api
+          Properties:
+            Path: /leads/{id}/log
+            Method: get
         getclient:
           Type: Api
           Properties:
@@ -61,6 +66,11 @@ Resources:
           Properties:
             Path: /clients/{id}
             Method: delete
+        clientlog:
+          Type: Api
+          Properties:
+            Path: /clients/{id}/log
+            Method: get
         getuser:
           Type: Api
           Properties:

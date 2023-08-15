@@ -26,13 +26,13 @@ module.exports = {
     return await getOne(event, Client, "Client");
   },
 
-  updateClient: async (event) => {
+  updateClient: async (event, userEmail) => {
     const inputs = ["phone", "email", "org", "rep", "status", "inCharge"];
     const status = {
       trigger: "",
       movingStatus: "Consulted",
     };
-    return await updateOne(event, inputs, Client, status, Lead);
+    return await updateOne(event, inputs, Client, status, Lead, userEmail);
   },
 
   deleteClient: async (event) => {

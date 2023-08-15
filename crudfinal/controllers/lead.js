@@ -1,7 +1,7 @@
 const service = require("../services/leads.js");
 
 module.exports = {
-  functions: async (event, context, callback) => {
+  functions: async (event, context, userEmail, callback) => {
     switch (event.httpMethod) {
       case "GET":
         if (event.resource === "/leads/{id}") {
@@ -12,7 +12,7 @@ module.exports = {
       case "POST":
         return await create(event);
       case "PUT":
-        return await update(event);
+        return await update(event, userEmail);
       case "DELETE":
         return await remove(event);
       default:
@@ -33,8 +33,8 @@ const getOneLead = async (event) => {
 const create = async (event) => {
   return await service.createLead(event);
 };
-const update = async (event) => {
-  return await service.updateLead(event);
+const update = async (event, userEmail) => {
+  return await service.updateLead(event, userEmail);
 };
 const remove = async (event) => {
   return await service.deleteLead(event);

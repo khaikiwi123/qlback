@@ -1,5 +1,6 @@
 const validator = require("validator");
 const { hashPassword } = require("./auth");
+const User = require("../models/User");
 
 module.exports = {
   validateEmail: async (email, Model, MoveModel) => {
@@ -48,6 +49,16 @@ module.exports = {
     }
 
     return phone;
+  },
+  validateInCharge: async (inCharge) => {
+    inCharge = inCharge.trim().toLowerCase();
+    const findInCharge = await User.findOne({
+      email: inCharge,
+    });
+    if (!findInCharge) {
+      throw new Error("Sale user doesn't exist");
+    }
+    return inCharge;
   },
 
   validatePassword: async (password) => {

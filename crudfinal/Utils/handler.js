@@ -2,7 +2,8 @@ const authControl = require("../controllers/auth.js");
 const leadControl = require("../controllers/lead.js");
 const clientControl = require("../controllers/client.js");
 const userControl = require("../controllers/user.js");
-const { verifyCurrent } = require("../Utils/auth.js");
+const logControl = require("../controllers/log.js");
+const { verifyCurrent, decodeToken } = require("../Utils/auth.js");
 const { authenticate, verifyRole } = require("../Utils/authentication.js");
 const {
   createErrorResponse,
@@ -38,8 +39,15 @@ module.exports = {
       if (roleError) {
         return roleError;
       }
+      const decoded = await decodeToken(event);
+      const userEmail = decoded.email;
 
-      const leads = await leadControl.functions(event, context, callback);
+      const leads = await leadControl.functions(
+        event,
+        context,
+        userEmail,
+        callback
+      );
       return createSuccessResponse(leads);
     } catch (error) {
       console.log(error);
@@ -64,8 +72,16 @@ module.exports = {
         return roleError;
       }
 
-      const leads = await clientControl.functions(event, context, callback);
-      return createSuccessResponse(leads);
+      const decoded = await decodeToken(event);
+      const userEmail = decoded.email;
+
+      const clients = await clientControl.functions(
+        event,
+        context,
+        userEmail,
+        callback
+      );
+      return createSuccessResponse(clients);
     } catch (error) {
       console.log(error);
       return createErrorResponse(
@@ -75,6 +91,44 @@ module.exports = {
         error.inCharge,
         error.type
       );
+    }
+  },
+  handleLeadLog: async (event, context, callback) => {
+    try {
+      const authError = await authenticate(event);
+      if (authError) {
+        return authError;
+      }
+
+      const roleError = await verifyRole(event, ["user", "admin"]);
+      if (roleError) {
+        return roleError;
+      }
+      const logs = await logControl.getChangeLog(event, "Lead");
+      return createSuccessResponse(logs);
+    } catch (error) {
+      console.log(error);
+      return createErrorResponse(500, error.message);
+    }
+  },
+
+  handleClientLog: async (event, context, callback) => {
+    try {
+      const authError = await authenticate(event);
+      if (authError) {
+        return authError;
+      }
+
+      const roleError = await verifyRole(event, ["user", "admin"]);
+      cd;
+      if (roleError) {
+        return roleError;
+      }
+      const logs = await logControl.getChangeLog(event, "Client");
+      return createSuccessResponse(logs);
+    } catch (error) {
+      console.log(error);
+      return createErrorResponse(500, error.message);
     }
   },
 

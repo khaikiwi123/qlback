@@ -3,6 +3,7 @@ const {
   validateEmail,
   validatePhone,
   validatePassword,
+  validateInCharge,
 } = require("../Utils/validate");
 const User = require("../models/User");
 
@@ -92,12 +93,7 @@ module.exports = {
       data.password = await validatePassword(data.password);
     }
     if (inputs.includes("inCharge")) {
-      const findInCharge = await User.findOne({
-        email: data.inCharge.trim().toLowerCase(),
-      });
-      if (!findInCharge) {
-        throw new Error("Sale user doesn't exist");
-      }
+      data.inCharge = await validateInCharge(data.inCharge);
     }
     if (data.role && !["user", "admin"].includes(data.role)) {
       throw new Error("Invalid role");
@@ -113,7 +109,14 @@ module.exports = {
     }
   },
 
-  updateOne: async (event, inputs, Model, statusConfig, MoveModel) => {
+  updateOne: async (
+    event,
+    inputs,
+    Model,
+    statusConfig,
+    MoveModel,
+    userEmail
+  ) => {
     const id = event.pathParameters.id;
     const data = JSON.parse(event.body);
     let update = {};
@@ -127,6 +130,9 @@ module.exports = {
             break;
           case "phone":
             update.phone = await validatePhone(value, Model, MoveModel);
+            break;
+          case "inCharge":
+            update.inCharge = await validateInCharge(value);
             break;
           default:
             update[field] = typeof value === "string" ? value.trim() : value;
@@ -152,10 +158,18 @@ module.exports = {
         update.status = statusConfig.movingStatus;
       }
 
-      await Model.findByIdAndUpdate(id, update, { new: true });
+      await Model.findByIdAndUpdate(
+        id,
+        { ...update, userEmail },
+        { new: true }
+      );
 
       if (await MoveModel.findById(id)) {
-        await MoveModel.findByIdAndUpdate(id, update, { new: true });
+        await MoveModel.findByIdAndUpdate(
+          id,
+          { ...update, userEmail },
+          { new: true }
+        );
       }
 
       return `${Model.modelName} updated`;
