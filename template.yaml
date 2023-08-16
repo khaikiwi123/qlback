@@ -66,11 +66,6 @@ Resources:
           Properties:
             Path: /clients/{id}
             Method: delete
-        clientlog:
-          Type: Api
-          Properties:
-            Path: /clients/{id}/log
-            Method: get
         getuser:
           Type: Api
           Properties:
