@@ -31,6 +31,9 @@ module.exports = {
 
   validatePhone: async (phone, Model, MoveModel) => {
     phone = phone.trim();
+    if (!validator.isMobilePhone(phone, ["vi-VN"])) {
+      throw new Error("Phone isn't valid");
+    }
 
     const collectionsToCheck = [Model];
 

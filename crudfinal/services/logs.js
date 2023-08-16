@@ -1,6 +1,6 @@
 const Log = require("../models/ChangeLog");
 module.exports = {
-  getChangeLogForDocument: async (event, collectionName) => {
+  getLog: async (event, collectionName) => {
     try {
       const documentId = event.pathParameters.id;
       const logs = await Log.find({

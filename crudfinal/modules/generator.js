@@ -10,8 +10,22 @@ const User = require("../models/User");
 module.exports = {
   getDocuments: async (Model, event, parameters, sort = null) => {
     let query = {};
-    const { pageNumber, pageSize, ...fields } =
+    const { pageNumber, pageSize, startDate, endDate, ...fields } =
       event.queryStringParameters || {};
+    if (startDate || endDate) {
+      query.createdDate = {};
+
+      if (startDate) {
+        const startJsDate = parseDateString(startDate);
+        query.createdDate.$gte = startJsDate;
+      }
+
+      if (endDate) {
+        const endJsDate = parseDateString(endDate);
+        endJsDate.setHours(23, 59, 59, 999);
+        query.createdDate.$lte = endJsDate;
+      }
+    }
 
     for (let key of parameters) {
       if (fields[key]) {
@@ -109,14 +123,7 @@ module.exports = {
     }
   },
 
-  updateOne: async (
-    event,
-    inputs,
-    Model,
-    statusConfig,
-    MoveModel,
-    userEmail
-  ) => {
+  updateOne: async (event, inputs, Model, MoveModel, userEmail) => {
     const id = event.pathParameters.id;
     const data = JSON.parse(event.body);
     let update = {};
@@ -149,13 +156,10 @@ module.exports = {
       if (data.status && modelData.status !== data.status) {
         update.statusUpdate = Date.now();
       }
-      if (data.status === statusConfig.trigger) {
+      if (data.status === "Success") {
         const newData = modelData.toObject();
-        newData.status = statusConfig.movingStatus;
-
         const newInstance = new MoveModel(newData);
         await newInstance.save();
-        update.status = statusConfig.movingStatus;
       }
 
       await Model.findByIdAndUpdate(
@@ -163,14 +167,6 @@ module.exports = {
         { ...update, userEmail },
         { new: true }
       );
-
-      if (await MoveModel.findById(id)) {
-        await MoveModel.findByIdAndUpdate(
-          id,
-          { ...update, userEmail },
-          { new: true }
-        );
-      }
 
       return `${Model.modelName} updated`;
     } catch (error) {
@@ -192,3 +188,8 @@ module.exports = {
     }
   },
 };
+
+function parseDateString(dateString) {
+  const [day, month, year] = dateString.split("/").map(Number);
+  return new Date(year, month - 1, day);
+}

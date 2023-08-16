@@ -34,11 +34,7 @@ module.exports = {
 
   updateLead: async (event, userEmail) => {
     const inputs = ["phone", "email", "org", "rep", "status", "inCharge"];
-    const status = {
-      trigger: "Success",
-      movingStatus: "Success",
-    };
-    return await updateOne(event, inputs, Lead, status, Client, userEmail);
+    return await updateOne(event, inputs, Lead, Client, userEmail);
   },
   deleteLead: async (event) => {
     return await deleteOne(event, Lead);

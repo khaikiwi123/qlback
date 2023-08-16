@@ -5,16 +5,16 @@ module.exports = {
     switch (event.httpMethod) {
       case "GET":
         if (event.resource === "/leads/{id}") {
-          return await getOneLead(event);
+          return await service.getOneLead(event);
         } else {
-          return await get(event);
+          return await service.getLead(event);
         }
       case "POST":
-        return await create(event);
+        return await service.createLead(event);
       case "PUT":
-        return await update(event, userEmail);
+        return await service.updateLead(event, userEmail);
       case "DELETE":
-        return await remove(event);
+        return await service.deleteLead(event);
       default:
         return {
           statusCode: 500,
@@ -22,20 +22,4 @@ module.exports = {
         };
     }
   },
-};
-
-const get = async (event) => {
-  return await service.getLead(event);
-};
-const getOneLead = async (event) => {
-  return await service.getOneLead(event);
-};
-const create = async (event) => {
-  return await service.createLead(event);
-};
-const update = async (event, userEmail) => {
-  return await service.updateLead(event, userEmail);
-};
-const remove = async (event) => {
-  return await service.deleteLead(event);
 };

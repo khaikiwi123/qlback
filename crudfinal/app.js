@@ -6,7 +6,6 @@ const {
   handleAllUsers,
   handleSingleUser,
   handleClients,
-  handleClientLog,
   handleLeadLog,
 } = require("./Utils/handler");
 const { createErrorResponse } = require("./Utils/response.js");
@@ -41,8 +40,6 @@ exports.handler = async (event, context, callback) => {
       return handleSingleUser(event, context, callback);
     case "/leads/{id}/log":
       return handleLeadLog(event, context, callback);
-    case "/clients/{id}/log":
-      return handleClientLog(event, context, callback);
     default:
       return createErrorResponse(404, "Path not found");
   }

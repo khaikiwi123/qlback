@@ -112,26 +112,6 @@ module.exports = {
     }
   },
 
-  handleClientLog: async (event, context, callback) => {
-    try {
-      const authError = await authenticate(event);
-      if (authError) {
-        return authError;
-      }
-
-      const roleError = await verifyRole(event, ["user", "admin"]);
-      cd;
-      if (roleError) {
-        return roleError;
-      }
-      const logs = await logControl.getChangeLog(event, "Client");
-      return createSuccessResponse(logs);
-    } catch (error) {
-      console.log(error);
-      return createErrorResponse(500, error.message);
-    }
-  },
-
   handleAllUsers: async (event, context, callback) => {
     try {
       const authError = await authenticate(event);
