@@ -62,6 +62,9 @@ module.exports = {
       return current;
     } catch (error) {
       console.error("Error verifying token:", error);
+      if (error.message === "Unauthorized access") {
+        error.statusCode = 403;
+      }
       throw error;
     }
   },

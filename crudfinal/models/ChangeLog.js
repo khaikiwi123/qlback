@@ -15,6 +15,9 @@ const LogSchema = new mongoose.Schema({
     default: Date.now,
     expires: "7d",
   },
+  daysLastUp: {
+    type: Number,
+  },
 });
 
 module.exports = mongoose.model("Log", LogSchema);

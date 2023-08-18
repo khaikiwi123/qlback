@@ -32,12 +32,17 @@ const LeadSchema = new mongoose.Schema({
       "Verified needs",
       "Consulted",
       "Success",
+      "Failed",
     ],
     default: "No contact",
   },
   statusUpdate: {
     type: Date,
     default: Date.now,
+  },
+  daysLastUp: {
+    type: Number,
+    default: 0,
   },
   inCharge: {
     type: String,
@@ -49,6 +54,12 @@ LeadSchema.pre("findOneAndUpdate", async function (next) {
   const newStatus = this.getUpdate().status;
 
   if (newStatus && docToUpdate.status !== newStatus) {
+    const currentDate = new Date();
+    const lastUpdateDate = docToUpdate.statusUpdate;
+    const differenceInDays = Math.ceil(
+      (currentDate - lastUpdateDate) / (1000 * 60 * 60 * 24)
+    );
+
     await Log.create({
       documentId: docToUpdate._id,
       sourceCollection: "Lead",
@@ -56,7 +67,11 @@ LeadSchema.pre("findOneAndUpdate", async function (next) {
       oldValue: docToUpdate.status,
       newValue: newStatus,
       changedBy: this._update.userEmail,
+      daysLastUp: differenceInDays,
     });
+
+    this._update.statusUpdate = currentDate;
+    this._update.daysLastUp = differenceInDays;
   }
   next();
 });

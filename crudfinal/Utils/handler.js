@@ -150,7 +150,8 @@ module.exports = {
       );
       return createSuccessResponse(user);
     } catch (error) {
-      return createErrorResponse(500, error.message);
+      const statusCode = error.statusCode || 500;
+      return createErrorResponse(statusCode, error.message);
     }
   },
 };
