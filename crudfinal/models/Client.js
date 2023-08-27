@@ -23,6 +23,10 @@ const ClientSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  status: {
+    type: String,
+    enum: ["Success", "Failed"],
+  },
   inCharge: {
     type: String,
     required: true,

@@ -1,6 +1,6 @@
 const headers = {
   "Access-Control-Allow-Headers": "content-Type, Authorization",
-  "Access-Control-Allow-Origin": "http://localhost:3000",
+  "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, GET, PUT, DELETE",
 };
 

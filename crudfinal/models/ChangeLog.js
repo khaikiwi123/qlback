@@ -13,7 +13,6 @@ const LogSchema = new mongoose.Schema({
   updatedAt: {
     type: Date,
     default: Date.now,
-    expires: "7d",
   },
   daysLastUp: {
     type: Number,

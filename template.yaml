@@ -5,8 +5,7 @@ Globals:
     Cors:
       AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS'"
       AllowHeaders: "'content-Type, Authorization'"
-      AllowOrigin: "'http://localhost:3000'"
-      AllowCredentials: true
+      AllowOrigin: "'*'"
 Resources:
   awssamfinal:
     Type: "AWS::Serverless::Function"

@@ -40,10 +40,6 @@ const LeadSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
-  daysLastUp: {
-    type: Number,
-    default: 0,
-  },
   inCharge: {
     type: String,
     required: true,
@@ -71,7 +67,6 @@ LeadSchema.pre("findOneAndUpdate", async function (next) {
     });
 
     this._update.statusUpdate = currentDate;
-    this._update.daysLastUp = differenceInDays;
   }
   next();
 });

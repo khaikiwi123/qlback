@@ -9,46 +9,93 @@ const User = require("../models/User");
 
 module.exports = {
   getDocuments: async (Model, event, parameters, sort = null) => {
-    let query = {};
-    const { pageNumber, pageSize, startDate, endDate, ...fields } =
-      event.queryStringParameters || {};
-    if (startDate || endDate) {
-      query.createdDate = {};
+    let query = [];
+    const {
+      pageNumber,
+      pageSize,
+      startDate,
+      endDate,
+      createdDate,
+      lastUpdated,
+      ...fields
+    } = event.multiValueQueryStringParameters || {};
+
+    const getActualValue = (val) => {
+      if (Array.isArray(val)) {
+        return val[0];
+      }
+      return val;
+    };
+
+    if (startDate || endDate || createdDate) {
+      let dateQuery = {};
+      if (createdDate) {
+        const createdDStart = parseDateString(getActualValue(createdDate));
+        createdDStart.setHours(0, 0, 0, 0);
+
+        const createdDEnd = new Date(createdDStart);
+        createdDEnd.setHours(23, 59, 59, 999);
+
+        dateQuery.$gte = createdDStart;
+        dateQuery.$lte = createdDEnd;
+      }
 
       if (startDate) {
-        const startJsDate = parseDateString(startDate);
-        query.createdDate.$gte = startJsDate;
+        const startJsDate = parseDateString(getActualValue(startDate));
+        startJsDate.setHours(0, 0, 0, 0);
+        dateQuery.$gte = startJsDate;
       }
 
       if (endDate) {
-        const endJsDate = parseDateString(endDate);
+        const endJsDate = parseDateString(getActualValue(endDate));
         endJsDate.setHours(23, 59, 59, 999);
-        query.createdDate.$lte = endJsDate;
+        dateQuery.$lte = endJsDate;
       }
+
+      query.push({ createdDate: dateQuery });
+    }
+    if (lastUpdated) {
+      let lastUp = {};
+      const lastUpdate = parseDateString(getActualValue(lastUpdated));
+      lastUpdate.setHours(0, 0, 0, 0);
+      lastUp.$lte = lastUpdate;
+
+      query.push({ statusUpdate: lastUp });
     }
 
     for (let key of parameters) {
       if (fields[key]) {
-        if (
-          fields[key].toLowerCase() === "true" ||
-          fields[key].toLowerCase() === "false"
-        ) {
-          query = {
-            ...query,
-            [key]: fields[key].toLowerCase() === "true",
-          };
+        let orQuery = [];
+        if (Array.isArray(fields[key])) {
+          for (let value of fields[key]) {
+            if (
+              value.toLowerCase() === "true" ||
+              value.toLowerCase() === "false"
+            ) {
+              orQuery.push({ [key]: value.toLowerCase() === "true" });
+            } else {
+              orQuery.push({ [key]: new RegExp(value, "i") });
+            }
+          }
+          query.push({ $or: orQuery });
         } else {
-          query = {
-            ...query,
-            [key]: new RegExp(fields[key], "i"),
-          };
+          if (
+            fields[key].toLowerCase() === "true" ||
+            fields[key].toLowerCase() === "false"
+          ) {
+            query.push({ [key]: fields[key].toLowerCase() === "true" });
+          } else {
+            query.push({ [key]: new RegExp(fields[key], "i") });
+          }
         }
       }
     }
 
-    const total = await Model.countDocuments(query);
+    const finalQuery = query.length > 1 ? { $and: query } : query[0] || {};
 
-    let modelQuery = Model.find(query);
+    const total = await Model.countDocuments(finalQuery);
+
+    let modelQuery = Model.find(finalQuery);
 
     if (sort) {
       modelQuery = modelQuery.sort(sort);
@@ -64,6 +111,7 @@ module.exports = {
 
     return { documents, total };
   },
+
   getOne: async (event, EntityType, errorMessage) => {
     try {
       const entityId = event.pathParameters.id;
@@ -167,6 +215,9 @@ module.exports = {
         { ...update, userEmail },
         { new: true }
       );
+      if (await MoveModel.findById(id)) {
+        await MoveModel.findByIdAndUpdate(id, update, { new: true });
+      }
 
       return `${Model.modelName} updated`;
     } catch (error) {
