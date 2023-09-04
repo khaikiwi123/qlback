@@ -36,6 +36,9 @@ const LeadSchema = new mongoose.Schema({
     ],
     default: "No contact",
   },
+  trackStatus: {
+    type: String,
+  },
   statusUpdate: {
     type: Date,
     default: Date.now,

@@ -1,5 +1,5 @@
 const Lead = require("../models/Lead");
-const Client = require("../models/Client");
+const Customer = require("../models/Customer");
 const {
   getDocuments,
   getOne,
@@ -33,10 +33,18 @@ module.exports = {
   },
 
   updateLead: async (event, userEmail) => {
-    const inputs = ["phone", "email", "org", "rep", "status", "inCharge"];
-    return await updateOne(event, inputs, Lead, Client, userEmail);
+    const inputs = [
+      "phone",
+      "email",
+      "org",
+      "rep",
+      "status",
+      "inCharge",
+      "trackStatus",
+    ];
+    return await updateOne(event, inputs, Lead, Customer, userEmail);
   },
   deleteLead: async (event) => {
-    return await deleteOne(event, Lead);
+    return await deleteOne(event, Lead, Customer);
   },
 };

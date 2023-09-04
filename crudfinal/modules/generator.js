@@ -209,7 +209,11 @@ module.exports = {
         const newInstance = new MoveModel(newData);
         await newInstance.save();
       }
-
+      if (data.status !== "Success") {
+        if (await MoveModel.findById(id)) {
+          await MoveModel.findByIdAndDelete(id);
+        }
+      }
       await Model.findByIdAndUpdate(
         id,
         { ...update, userEmail },
@@ -225,13 +229,16 @@ module.exports = {
     }
   },
 
-  deleteOne: async (event, Model) => {
+  deleteOne: async (event, Model, MoveModel) => {
     const id = event.pathParameters.id;
 
     try {
       const result = await Model.findByIdAndDelete(id);
       if (!result) {
         throw new Error(`${Model.modelName} not found`);
+      }
+      if (MoveModel && (await MoveModel.findById(id))) {
+        await MoveModel.findByIdAndDelete(id);
       }
       return `${Model.modelName} deleted`;
     } catch (error) {

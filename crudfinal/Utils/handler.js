@@ -1,6 +1,6 @@
 const authControl = require("../controllers/auth.js");
 const leadControl = require("../controllers/lead.js");
-const clientControl = require("../controllers/client.js");
+const customerControl = require("../controllers/customer.js");
 const userControl = require("../controllers/user.js");
 const logControl = require("../controllers/log.js");
 const { verifyCurrent, decodeToken } = require("../Utils/auth.js");
@@ -60,7 +60,7 @@ module.exports = {
       );
     }
   },
-  handleClients: async (event, context, callback) => {
+  handleCustomers: async (event, context, callback) => {
     try {
       const authError = await authenticate(event);
       if (authError) {
@@ -75,13 +75,13 @@ module.exports = {
       const decoded = await decodeToken(event);
       const userEmail = decoded.email;
 
-      const clients = await clientControl.functions(
+      const customers = await customerControl.functions(
         event,
         context,
         userEmail,
         callback
       );
-      return createSuccessResponse(clients);
+      return createSuccessResponse(customers);
     } catch (error) {
       console.log(error);
       return createErrorResponse(

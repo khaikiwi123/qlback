@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const ClientSchema = new mongoose.Schema({
+const CustomerSchema = new mongoose.Schema({
   phone: {
     type: String,
     required: true,
@@ -23,14 +23,10 @@ const ClientSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
-  status: {
-    type: String,
-    enum: ["Success", "Failed"],
-  },
   inCharge: {
     type: String,
     required: true,
   },
 });
 
-module.exports = mongoose.model("Client", ClientSchema);
+module.exports = mongoose.model("Customer", CustomerSchema);

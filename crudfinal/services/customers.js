@@ -1,4 +1,4 @@
-const Client = require("../models/Client");
+const Customer = require("../models/Customer");
 const Lead = require("../models/Lead");
 const {
   getDocuments,
@@ -8,30 +8,30 @@ const {
 } = require("../modules/generator");
 
 module.exports = {
-  getClient: async (event) => {
+  getCustomer: async (event) => {
     try {
       const { documents, total } = await getDocuments(
-        Client,
+        Customer,
         event,
         ["status", "rep", "org", "email", "phone", "inCharge"],
         { createdDate: -1 }
       );
-      return { clients: documents, total: total };
+      return { customers: documents, total: total };
     } catch (error) {
       throw new Error(error.message);
     }
   },
 
-  getOneClient: async (event) => {
-    return await getOne(event, Client, "Client");
+  getOneCustomer: async (event) => {
+    return await getOne(event, Customer, "Customer");
   },
 
-  updateClient: async (event, userEmail) => {
+  updateCustomer: async (event, userEmail) => {
     const inputs = ["phone", "email", "org", "rep", "status", "inCharge"];
-    return await updateOne(event, inputs, Client, Lead, userEmail);
+    return await updateOne(event, inputs, Customer, Lead, userEmail);
   },
 
-  deleteClient: async (event) => {
-    return await deleteOne(event, Client);
+  deleteCustomer: async (event) => {
+    return await deleteOne(event, Customer);
   },
 };

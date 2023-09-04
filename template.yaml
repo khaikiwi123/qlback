@@ -45,25 +45,25 @@ Resources:
           Properties:
             Path: /leads/{id}/log
             Method: get
-        getclient:
+        getcustomer:
           Type: Api
           Properties:
-            Path: /clients
+            Path: /customers
             Method: get
-        getoneclient:
+        getonecustomer:
           Type: Api
           Properties:
-            Path: /clients/{id}
+            Path: /customers/{id}
             Method: get
-        updateclient:
+        updatecustomer:
           Type: Api
           Properties:
-            Path: /clients/{id}
+            Path: /customers/{id}
             Method: put
-        deleteclient:
+        deletecustomer:
           Type: Api
           Properties:
-            Path: /clients/{id}
+            Path: /customers/{id}
             Method: delete
         getuser:
           Type: Api
