@@ -105,6 +105,31 @@ Resources:
           Properties:
             Path: /auth/refresh
             Method: post
+        createProd:
+          Type: Api
+          Properties:
+            Path: /products
+            Method: post
+        getProd:
+          Type: Api
+          Properties:
+            Path: /products
+            Method: get
+        getOneProd:
+          Type: Api
+          Properties:
+            Path: /products/{id}
+            Method: get
+        updateOneProd:
+          Type: Api
+          Properties:
+            Path: /products/{id}
+            Method: put
+        deleteOneProd:
+          Type: Api
+          Properties:
+            Path: /products/{id}
+            Method: delete
       Environment:
         Variables:
           MONGODB_URI: mongodb+srv://khaikiwi:khaikiwi21@cluster0.vcoqi73.mongodb.net/?retryWrites=true&w=majority

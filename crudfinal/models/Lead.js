@@ -47,6 +47,10 @@ const LeadSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  createdBy: {
+    type: String,
+    required: true,
+  },
 });
 LeadSchema.pre("findOneAndUpdate", async function (next) {
   const docToUpdate = await this.model.findOne(this.getQuery());
@@ -71,6 +75,19 @@ LeadSchema.pre("findOneAndUpdate", async function (next) {
 
     this._update.statusUpdate = currentDate;
   }
+  next();
+});
+LeadSchema.pre("save", async function (next) {
+  const currentDate = this.createdDate;
+
+  await Log.create({
+    documentId: this._id,
+    sourceCollection: "Lead",
+    field: "created",
+    changedBy: this.createdBy,
+    updatedAt: currentDate,
+  });
+
   next();
 });
 

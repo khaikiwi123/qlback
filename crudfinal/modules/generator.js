@@ -6,6 +6,7 @@ const {
   validateInCharge,
 } = require("../Utils/validate");
 const User = require("../models/User");
+const Product = require("../models/Product");
 
 module.exports = {
   getDocuments: async (Model, event, parameters, sort = null) => {
@@ -17,6 +18,7 @@ module.exports = {
       endDate,
       createdDate,
       lastUpdated,
+      list,
       ...fields
     } = event.multiValueQueryStringParameters || {};
 
@@ -26,6 +28,11 @@ module.exports = {
       }
       return val;
     };
+
+    let selectFields = {};
+    if (list) {
+      selectFields[list] = 1;
+    }
 
     if (startDate || endDate || createdDate) {
       let dateQuery = {};
@@ -100,6 +107,9 @@ module.exports = {
     if (sort) {
       modelQuery = modelQuery.sort(sort);
     }
+    if (list) {
+      modelQuery = modelQuery.select(selectFields);
+    }
 
     if (pageNumber && pageSize) {
       modelQuery = modelQuery
@@ -108,8 +118,16 @@ module.exports = {
     }
 
     const documents = await modelQuery;
+    let responseList = [];
+    if (list) {
+      for (const doc of documents) {
+        responseList.push({ _id: doc._id, [list]: doc[list] });
+      }
+    } else {
+      responseList = documents;
+    }
 
-    return { documents, total };
+    return { documents: responseList, total };
   },
 
   getOne: async (event, EntityType, errorMessage) => {
@@ -175,7 +193,8 @@ module.exports = {
     const id = event.pathParameters.id;
     const data = JSON.parse(event.body);
     let update = {};
-
+    console.log(Model);
+    console.log(MoveModel);
     for (const field of inputs) {
       const value = data[field];
       if (value) {
@@ -204,22 +223,50 @@ module.exports = {
       if (data.status && modelData.status !== data.status) {
         update.statusUpdate = Date.now();
       }
-      if (data.status === "Success") {
-        const newData = modelData.toObject();
-        const newInstance = new MoveModel(newData);
-        await newInstance.save();
-      }
-      if (data.status !== "Success") {
-        if (await MoveModel.findById(id)) {
-          await MoveModel.findByIdAndDelete(id);
+      if (MoveModel) {
+        if (data.status && data.status !== "Success") {
+          const moveModelInstance = await MoveModel.findById(id);
+          if (moveModelInstance) {
+            const productId = moveModelInstance.product;
+            await MoveModel.findByIdAndDelete(id);
+
+            await Product.updateOne(
+              { _id: productId },
+              { $pull: { customers: id } }
+            );
+          }
+        }
+        if (data.status === "Success") {
+          if (!data.product) {
+            throw new Error(
+              "A product ID is required to change status to Success"
+            );
+          }
+
+          const newData = modelData.toObject();
+          newData.product = data.product;
+
+          const newInstance = new MoveModel(newData);
+
+          await newInstance.save();
+
+          const product = await Product.findById(data.product);
+
+          if (!product) {
+            throw new Error("Product not found");
+          }
+
+          await product.save();
         }
       }
+
       await Model.findByIdAndUpdate(
         id,
         { ...update, userEmail },
         { new: true }
       );
-      if (await MoveModel.findById(id)) {
+
+      if (MoveModel && (await MoveModel.findById(id))) {
         await MoveModel.findByIdAndUpdate(id, update, { new: true });
       }
 

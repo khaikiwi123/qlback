@@ -3,6 +3,7 @@ const leadControl = require("../controllers/lead.js");
 const customerControl = require("../controllers/customer.js");
 const userControl = require("../controllers/user.js");
 const logControl = require("../controllers/log.js");
+const productControl = require("../controllers/product.js");
 const { verifyCurrent, decodeToken } = require("../Utils/auth.js");
 const { authenticate, verifyRole } = require("../Utils/authentication.js");
 const {
@@ -126,6 +127,22 @@ module.exports = {
 
       const users = await userControl.functions(event, context, callback);
       return createSuccessResponse(users);
+    } catch (error) {
+      return createErrorResponse(500, error.message);
+    }
+  },
+  handleProducts: async (event, context, callback) => {
+    try {
+      const authError = await authenticate(event);
+      if (authError) {
+        return authError;
+      }
+      const roleError = await verifyRole(event, ["admin"]);
+      if (roleError) {
+        return roleError;
+      }
+      const products = await productControl.functions(event, context, callback);
+      return createSuccessResponse(products);
     } catch (error) {
       return createErrorResponse(500, error.message);
     }

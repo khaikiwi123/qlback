@@ -4,6 +4,7 @@ const {
   handleAuth,
   handleLeads,
   handleAllUsers,
+  handleProducts,
   handleSingleUser,
   handleCustomers,
   handleLeadLog,
@@ -40,6 +41,9 @@ exports.handler = async (event, context, callback) => {
       return handleSingleUser(event, context, callback);
     case "/leads/{id}/log":
       return handleLeadLog(event, context, callback);
+    case "/products":
+    case "/products/{id}":
+      return handleProducts(event, context, callback);
     default:
       return createErrorResponse(404, "Path not found");
   }
