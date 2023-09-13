@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
+const Log = require("./ChangeLog");
 
 const CustomerSchema = new Schema({
   phone: {
@@ -20,7 +21,10 @@ const CustomerSchema = new Schema({
     type: String,
     required: true,
   },
-  product: Schema.Types.ObjectId,
+  product: {
+    type: String,
+    default: "Chưa có sản phẩm",
+  },
   createdDate: {
     type: Date,
     default: Date.now,
@@ -30,5 +34,4 @@ const CustomerSchema = new Schema({
     required: true,
   },
 });
-
 module.exports = mongoose.model("Customer", CustomerSchema);

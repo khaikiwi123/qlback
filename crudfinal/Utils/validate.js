@@ -1,6 +1,7 @@
 const validator = require("validator");
 const { hashPassword } = require("./auth");
 const User = require("../models/User");
+const Product = require("../models/Product");
 
 module.exports = {
   validateEmail: async (email, Model, MoveModel) => {
@@ -62,6 +63,22 @@ module.exports = {
       throw new Error("Sale user doesn't exist");
     }
     return inCharge;
+  },
+  validateProduct: async (prodName) => {
+    prodName = prodName.trim();
+    const findProd = await Product.findOne({ prodName: prodName });
+    if (findProd) {
+      throw new Error("Product existed");
+    }
+    return prodName;
+  },
+  validateExistedProd: async (product) => {
+    product = product.trim();
+    const findProd = await Product.findOne({ prodName: product });
+    if (!findProd) {
+      throw new Error("Product doesn't exist");
+    }
+    return product;
   },
 
   validatePassword: async (password) => {

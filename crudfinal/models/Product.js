@@ -2,9 +2,10 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const ProductSchema = new Schema({
-  name: {
+  prodName: {
     type: String,
     required: true,
+    unique: true,
   },
   price: {
     type: String,
@@ -18,6 +19,10 @@ const ProductSchema = new Schema({
     type: String,
     enum: ["active", "inactive", "deleted"],
     default: "active",
+  },
+  createdDate: {
+    type: Date,
+    default: Date.now,
   },
 });
 

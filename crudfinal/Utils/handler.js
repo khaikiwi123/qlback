@@ -137,10 +137,13 @@ module.exports = {
       if (authError) {
         return authError;
       }
-      const roleError = await verifyRole(event, ["admin"]);
-      if (roleError) {
-        return roleError;
+      if (event.httpMethod !== "GET") {
+        const roleError = await verifyRole(event, ["admin"]);
+        if (roleError) {
+          return roleError;
+        }
       }
+
       const products = await productControl.functions(event, context, callback);
       return createSuccessResponse(products);
     } catch (error) {

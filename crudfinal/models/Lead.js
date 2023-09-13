@@ -47,14 +47,20 @@ const LeadSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  product: {
+    type: String,
+    default: "Chưa có sản phẩm",
+  },
   createdBy: {
     type: String,
     required: true,
   },
 });
+
 LeadSchema.pre("findOneAndUpdate", async function (next) {
   const docToUpdate = await this.model.findOne(this.getQuery());
   const newStatus = this.getUpdate().status;
+  const newProd = this.getUpdate().product;
 
   if (newStatus && docToUpdate.status !== newStatus) {
     const currentDate = new Date();
@@ -62,7 +68,6 @@ LeadSchema.pre("findOneAndUpdate", async function (next) {
     const differenceInDays = Math.ceil(
       (currentDate - lastUpdateDate) / (1000 * 60 * 60 * 24)
     );
-
     await Log.create({
       documentId: docToUpdate._id,
       sourceCollection: "Lead",
@@ -74,6 +79,18 @@ LeadSchema.pre("findOneAndUpdate", async function (next) {
     });
 
     this._update.statusUpdate = currentDate;
+  }
+  if (newProd && docToUpdate.product !== newProd) {
+    const currentDate = new Date();
+    await Log.create({
+      documentId: docToUpdate._id,
+      sourceCollection: "Lead",
+      field: "product",
+      oldValue: docToUpdate.product,
+      newValue: newProd,
+      changedBy: this._update.userEmail,
+      updatedAt: currentDate,
+    });
   }
   next();
 });

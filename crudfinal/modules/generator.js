@@ -4,9 +4,13 @@ const {
   validatePhone,
   validatePassword,
   validateInCharge,
+  validateProduct,
+  validateExistedProd,
 } = require("../Utils/validate");
 const User = require("../models/User");
 const Product = require("../models/Product");
+const Lead = require("../models/Lead");
+const Customer = require("../models/Customer");
 
 module.exports = {
   getDocuments: async (Model, event, parameters, sort = null) => {
@@ -175,6 +179,9 @@ module.exports = {
     if (inputs.includes("inCharge")) {
       data.inCharge = await validateInCharge(data.inCharge);
     }
+    if (inputs.includes("prodName")) {
+      data.prodName = await validateProduct(data.prodName);
+    }
     if (data.role && !["user", "admin"].includes(data.role)) {
       throw new Error("Invalid role");
     }
@@ -192,9 +199,12 @@ module.exports = {
   updateOne: async (event, inputs, Model, MoveModel, userEmail) => {
     const id = event.pathParameters.id;
     const data = JSON.parse(event.body);
+    let modelData = await Model.findById(id);
+
+    if (!modelData) {
+      throw new Error("Data not found");
+    }
     let update = {};
-    console.log(Model);
-    console.log(MoveModel);
     for (const field of inputs) {
       const value = data[field];
       if (value) {
@@ -208,6 +218,31 @@ module.exports = {
           case "inCharge":
             update.inCharge = await validateInCharge(value);
             break;
+          case "product":
+            update.product = await validateExistedProd(value);
+            break;
+          case "prodName":
+            update.prodName = await validateProduct(value);
+            try {
+              await Lead.updateMany(
+                { product: modelData.prodName },
+                { product: value }
+              );
+            } catch (error) {
+              throw new Error("Failed to update Leads", error);
+            }
+            try {
+              await Customer.updateMany(
+                { product: modelData.prodName },
+                { product: value }
+              );
+            } catch (error) {
+              throw new Error("Failed to update Leads", error);
+            }
+
+            console.log(modelData.prodName);
+            console.log(value);
+            break;
           default:
             update[field] = typeof value === "string" ? value.trim() : value;
         }
@@ -215,59 +250,47 @@ module.exports = {
     }
 
     try {
-      let modelData = await Model.findById(id);
-
-      if (!modelData) {
-        throw new Error("Data not found");
-      }
       if (data.status && modelData.status !== data.status) {
         update.statusUpdate = Date.now();
       }
       if (MoveModel) {
         if (data.status && data.status !== "Success") {
-          const moveModelInstance = await MoveModel.findById(id);
-          if (moveModelInstance) {
-            const productId = moveModelInstance.product;
+          const moveModel = await MoveModel.findById(id);
+          if (moveModel) {
             await MoveModel.findByIdAndDelete(id);
-
-            await Product.updateOne(
-              { _id: productId },
-              { $pull: { customers: id } }
-            );
           }
         }
         if (data.status === "Success") {
           if (!data.product) {
-            throw new Error(
-              "A product ID is required to change status to Success"
-            );
+            throw new Error("Product is required");
           }
 
-          const newData = modelData.toObject();
-          newData.product = data.product;
-
-          const newInstance = new MoveModel(newData);
-
-          await newInstance.save();
-
-          const product = await Product.findById(data.product);
+          const product = await Product.findOne({ prodName: data.product });
 
           if (!product) {
             throw new Error("Product not found");
           }
 
-          await product.save();
+          const newData = modelData.toObject();
+          newData.product = data.product;
+          update.product = data.product;
+
+          const newInstance = new MoveModel(newData);
+          await newInstance.save();
         }
       }
 
       await Model.findByIdAndUpdate(
         id,
         { ...update, userEmail },
-        { new: true }
+        { new: true, context: { product: data.product } }
       );
 
       if (MoveModel && (await MoveModel.findById(id))) {
-        await MoveModel.findByIdAndUpdate(id, update, { new: true });
+        await MoveModel.findByIdAndUpdate(id, update, {
+          new: true,
+          context: { product: data.product },
+        });
       }
 
       return `${Model.modelName} updated`;

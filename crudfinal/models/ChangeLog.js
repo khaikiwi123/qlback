@@ -14,6 +14,9 @@ const LogSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  product: {
+    type: String,
+  },
   daysLastUp: {
     type: Number,
   },

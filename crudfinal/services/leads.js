@@ -14,7 +14,7 @@ module.exports = {
       const { documents, total } = await getDocuments(
         Lead,
         event,
-        ["status", "rep", "org", "email", "phone", "inCharge"],
+        ["status", "rep", "org", "email", "phone", "inCharge", "product"],
         { createdDate: -1 }
       );
       return { leads: documents, total: total };
@@ -39,6 +39,7 @@ module.exports = {
       "org",
       "rep",
       "status",
+      "product",
       "inCharge",
       "trackStatus",
     ];

@@ -13,7 +13,7 @@ module.exports = {
       const { documents, total } = await getDocuments(
         Customer,
         event,
-        ["status", "rep", "org", "email", "phone", "inCharge"],
+        ["status", "rep", "org", "email", "phone", "inCharge", "product"],
         { createdDate: -1 }
       );
       return { customers: documents, total: total };
@@ -27,7 +27,15 @@ module.exports = {
   },
 
   updateCustomer: async (event, userEmail) => {
-    const inputs = ["phone", "email", "org", "rep", "status", "inCharge"];
+    const inputs = [
+      "phone",
+      "email",
+      "org",
+      "rep",
+      "status",
+      "product",
+      "inCharge",
+    ];
     return await updateOne(event, inputs, Customer, Lead, userEmail);
   },
 
