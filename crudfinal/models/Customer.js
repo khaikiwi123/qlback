@@ -25,9 +25,11 @@ const CustomerSchema = new Schema({
     type: String,
     default: "Chưa có sản phẩm",
   },
-  createdDate: {
+  startDate: {
     type: Date,
-    default: Date.now,
+  },
+  endDate: {
+    type: Date,
   },
   inCharge: {
     type: String,

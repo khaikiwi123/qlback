@@ -105,6 +105,31 @@ Resources:
           Properties:
             Path: /auth/refresh
             Method: post
+        getbill:
+          Type: Api
+          Properties:
+            Path: /bills
+            Method: get
+        getonebill:
+          Type: Api
+          Properties:
+            Path: /bills/{id}
+            Method: get
+        createbill:
+          Type: Api
+          Properties:
+            Path: /bills
+            Method: post
+        updatelead:
+          Type: Api
+          Properties:
+            Path: /bills/{id}
+            Method: put
+        deletebill:
+          Type: Api
+          Properties:
+            Path: /bills/{id}
+            Method: delete
         createProd:
           Type: Api
           Properties:

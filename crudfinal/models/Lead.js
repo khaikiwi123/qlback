@@ -51,6 +51,9 @@ const LeadSchema = new mongoose.Schema({
     type: String,
     default: "Chưa có sản phẩm",
   },
+  bill: {
+    type: mongoose.Schema.Types.ObjectId,
+  },
   createdBy: {
     type: String,
     required: true,

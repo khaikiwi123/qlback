@@ -25,7 +25,7 @@ module.exports = {
       list,
       ...fields
     } = event.multiValueQueryStringParameters || {};
-
+    console.log(Model);
     const getActualValue = (val) => {
       if (Array.isArray(val)) {
         return val[0];
@@ -33,6 +33,13 @@ module.exports = {
       return val;
     };
 
+    const decodedToken = await decodeToken(event);
+    const userId = decodedToken.userId;
+    const user = await User.findById(userId);
+    const role = decodedToken.role;
+    if (!user) {
+      throw new Error("User not found");
+    }
     let selectFields = {};
     if (list) {
       selectFields[list] = 1;
@@ -101,7 +108,9 @@ module.exports = {
         }
       }
     }
-
+    if (role !== "admin" && Model.modelName !== "Product") {
+      query.push({ inCharge: user.email });
+    }
     const finalQuery = query.length > 1 ? { $and: query } : query[0] || {};
 
     const total = await Model.countDocuments(finalQuery);

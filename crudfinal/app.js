@@ -8,6 +8,7 @@ const {
   handleSingleUser,
   handleCustomers,
   handleLeadLog,
+  handleBill,
 } = require("./Utils/handler");
 const { createErrorResponse } = require("./Utils/response.js");
 
@@ -41,6 +42,9 @@ exports.handler = async (event, context, callback) => {
       return handleSingleUser(event, context, callback);
     case "/leads/{id}/log":
       return handleLeadLog(event, context, callback);
+    case "/bills":
+    case "/bills/{id}":
+      return handleBill(event, context, callback);
     case "/products":
     case "/products/{id}":
       return handleProducts(event, context, callback);

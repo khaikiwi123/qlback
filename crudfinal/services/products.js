@@ -13,6 +13,7 @@ module.exports = {
       const { documents, total } = await getDocuments(Product, event, [
         "prodName",
         "price",
+        "length",
         "description",
         "status",
       ]);
@@ -25,11 +26,11 @@ module.exports = {
     return await getOne(event, Product, "Product");
   },
   createProd: async (event) => {
-    const inputs = ["prodName", "price", "description"];
+    const inputs = ["prodName", "price", "length", "description"];
     return await createOne(event, inputs, Product);
   },
   updateProd: async (event) => {
-    const inputs = ["prodName", "price", "description", "status"];
+    const inputs = ["prodName", "price", "description", "length", "status"];
     return await updateOne(event, inputs, Product);
   },
   deleteProd: async (event) => {
