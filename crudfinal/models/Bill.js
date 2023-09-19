@@ -6,6 +6,9 @@ const BillSchema = new Schema({
   customer: {
     type: String,
   },
+  org: {
+    type: String,
+  },
   product: {
     type: String,
   },
@@ -18,15 +21,19 @@ const BillSchema = new Schema({
   startDate: {
     type: Date,
   },
+  status: {
+    type: String,
+    default: "Active",
+  },
   inCharge: {
     type: String,
   },
 });
 BillSchema.pre("save", async function (next) {
   try {
-    const customerPhone = this.customer;
+    const email = this.customer;
 
-    await Lead.findOneAndUpdate({ phone: customerPhone }, { bill: this._id });
+    await Lead.findOneAndUpdate({ email: email }, { bill: this._id });
 
     next();
   } catch (error) {

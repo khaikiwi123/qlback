@@ -11,6 +11,7 @@ const User = require("../models/User");
 const Product = require("../models/Product");
 const Lead = require("../models/Lead");
 const Customer = require("../models/Customer");
+const Bill = require("../models/Bill");
 
 module.exports = {
   getDocuments: async (Model, event, parameters, sort = null) => {
@@ -108,7 +109,11 @@ module.exports = {
         }
       }
     }
-    if (role !== "admin" && Model.modelName !== "Product") {
+    if (
+      role !== "admin" &&
+      Model.modelName !== "Product" &&
+      Model.modelName !== "Customer"
+    ) {
       query.push({ inCharge: user.email });
     }
     const finalQuery = query.length > 1 ? { $and: query } : query[0] || {};
@@ -195,11 +200,23 @@ module.exports = {
       throw new Error("Invalid role");
     }
 
-    const entry = new Model(data);
+    let entry;
+
+    if (Model.modelName === "Bill" && data.customer) {
+      entry = await Model.findOne({ customer: data.customer });
+    }
+
+    if (entry) {
+      Object.keys(data).forEach((key) => {
+        entry[key] = data[key];
+      });
+    } else {
+      entry = new Model(data);
+    }
 
     try {
       await entry.save();
-      return `${Model.modelName} created`;
+      return `${Model.modelName} ${entry.isNew ? "created" : "updated"}`;
     } catch (error) {
       throw new Error(error.message);
     }
@@ -266,6 +283,11 @@ module.exports = {
         if (data.status && data.status !== "Success") {
           const moveModel = await MoveModel.findById(id);
           if (moveModel) {
+            const cusEmail = moveModel.email;
+            await Bill.findOneAndUpdate(
+              { customer: cusEmail },
+              { status: "Inactive" }
+            );
             await MoveModel.findByIdAndDelete(id);
           }
         }

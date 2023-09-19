@@ -20,141 +20,197 @@ Resources:
           Properties:
             Path: /leads
             Method: get
+            Auth:
+              Authorizer: null
         getonelead:
           Type: Api
           Properties:
             Path: /leads/{id}
             Method: get
+            Auth:
+              Authorizer: null
         createlead:
           Type: Api
           Properties:
             Path: /leads
             Method: post
+            Auth:
+              Authorizer: null
         updatelead:
           Type: Api
           Properties:
             Path: /leads/{id}
             Method: put
+            Auth:
+              Authorizer: null
         deletelead:
           Type: Api
           Properties:
             Path: /leads/{id}
             Method: delete
+            Auth:
+              Authorizer: null
         leadlog:
           Type: Api
           Properties:
             Path: /leads/{id}/log
             Method: get
+            Auth:
+              Authorizer: null
         getcustomer:
           Type: Api
           Properties:
             Path: /customers
             Method: get
+            Auth:
+              Authorizer: null
         getonecustomer:
           Type: Api
           Properties:
             Path: /customers/{id}
             Method: get
+            Auth:
+              Authorizer: null
         updatecustomer:
           Type: Api
           Properties:
             Path: /customers/{id}
             Method: put
+            Auth:
+              Authorizer: null
         deletecustomer:
           Type: Api
           Properties:
             Path: /customers/{id}
             Method: delete
+            Auth:
+              Authorizer: null
         getuser:
           Type: Api
           Properties:
             Path: /users
             Method: get
+            Auth:
+              Authorizer: null
         getone:
           Type: Api
           Properties:
             Path: /users/{id}
             Method: get
+            Auth:
+              Authorizer: null
         createuser:
           Type: Api
           Properties:
             Path: /users
             Method: post
+            Auth:
+              Authorizer: null
         updateuser:
           Type: Api
           Properties:
             Path: /users/{id}
             Method: put
+            Auth:
+              Authorizer: null
         deleteuser:
           Type: Api
           Properties:
             Path: /users/{id}
             Method: delete
+            Auth:
+              Authorizer: null
         login:
           Type: Api
           Properties:
             Path: /auth/login
             Method: post
+            Auth:
+              Authorizer: null
         logout:
           Type: Api
           Properties:
             Path: /auth/logout
             Method: post
+            Auth:
+              Authorizer: null
         refresh:
           Type: Api
           Properties:
             Path: /auth/refresh
             Method: post
+            Auth:
+              Authorizer: null
         getbill:
           Type: Api
           Properties:
             Path: /bills
             Method: get
+            Auth:
+              Authorizer: null
         getonebill:
           Type: Api
           Properties:
             Path: /bills/{id}
             Method: get
+            Auth:
+              Authorizer: null
         createbill:
           Type: Api
           Properties:
             Path: /bills
             Method: post
-        updatelead:
+            Auth:
+              Authorizer: null
+        updatebill:
           Type: Api
           Properties:
             Path: /bills/{id}
             Method: put
+            Auth:
+              Authorizer: null
         deletebill:
           Type: Api
           Properties:
             Path: /bills/{id}
             Method: delete
+            Auth:
+              Authorizer: null
         createProd:
           Type: Api
           Properties:
             Path: /products
             Method: post
+            Auth:
+              Authorizer: null
         getProd:
           Type: Api
           Properties:
             Path: /products
             Method: get
+            Auth:
+              Authorizer: null
         getOneProd:
           Type: Api
           Properties:
             Path: /products/{id}
             Method: get
+            Auth:
+              Authorizer: null
         updateOneProd:
           Type: Api
           Properties:
             Path: /products/{id}
             Method: put
+            Auth:
+              Authorizer: null
         deleteOneProd:
           Type: Api
           Properties:
             Path: /products/{id}
             Method: delete
+            Auth:
+              Authorizer: null
       Environment:
         Variables:
           MONGODB_URI: mongodb+srv://khaikiwi:khaikiwi21@cluster0.vcoqi73.mongodb.net/?retryWrites=true&w=majority

@@ -12,10 +12,12 @@ module.exports = {
     try {
       const { documents, total } = await getDocuments(Bill, event, [
         "customer",
+        "org",
         "product",
         "length",
         "price",
         "startDate",
+        "inCharge",
       ]);
       return { bills: documents, total: total };
     } catch (error) {
