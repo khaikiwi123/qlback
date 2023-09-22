@@ -18,7 +18,7 @@ module.exports = {
         "email",
         "phone",
       ]);
-      documents.sort(sortedName);
+      // documents.sort(sortedName);
       return { users: documents, total: total };
     } catch (error) {
       throw new Error(error.message);

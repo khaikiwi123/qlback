@@ -17,6 +17,7 @@ module.exports = {
         "length",
         "price",
         "startDate",
+        "status",
         "inCharge",
       ]);
       return { bills: documents, total: total };
@@ -28,11 +29,27 @@ module.exports = {
     return await getOne(event, Bill, "Bill");
   },
   createBill: async (event) => {
-    const inputs = ["customer", "product", "length", "price", "startDate"];
+    const inputs = [
+      "customer",
+      "org",
+      "product",
+      "length",
+      "price",
+      "startDate",
+      "inCharge",
+    ];
     return await createOne(event, inputs, Bill);
   },
   updateBill: async (event) => {
-    const inputs = ["customer", "product", "length", "price", "startDate"];
+    const inputs = [
+      "customer",
+      "org",
+      "product",
+      "length",
+      "price",
+      "startDate",
+      "inCharge",
+    ];
     return await updateOne(event, inputs, Bill);
   },
   deleteBill: async (event) => {
