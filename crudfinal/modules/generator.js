@@ -42,9 +42,9 @@ module.exports = {
       throw new Error("User not found");
     }
     let selectFields = {};
-    if (list) {
-      selectFields[list] = 1;
-    }
+    // if (list) {
+    //   selectFields[list] = 1;
+    // }
 
     if (startDate || endDate || createdDate) {
       let dateQuery = {};
@@ -87,7 +87,9 @@ module.exports = {
         let orQuery = [];
         if (Array.isArray(fields[key])) {
           for (let value of fields[key]) {
-            if (
+            if (key === "status") {
+              orQuery.push({ [key]: value });
+            } else if (
               value.toLowerCase() === "true" ||
               value.toLowerCase() === "false"
             ) {
@@ -98,7 +100,9 @@ module.exports = {
           }
           query.push({ $or: orQuery });
         } else {
-          if (
+          if (key === "status") {
+            query.push({ [key]: fields[key] });
+          } else if (
             fields[key].toLowerCase() === "true" ||
             fields[key].toLowerCase() === "false"
           ) {
@@ -116,6 +120,7 @@ module.exports = {
     ) {
       query.push({ inCharge: user.email });
     }
+
     const finalQuery = query.length > 1 ? { $and: query } : query[0] || {};
 
     const total = await Model.countDocuments(finalQuery);
@@ -125,9 +130,9 @@ module.exports = {
     if (sort) {
       modelQuery = modelQuery.sort(sort);
     }
-    if (list) {
-      modelQuery = modelQuery.select(selectFields);
-    }
+    // if (list) {
+    //   modelQuery = modelQuery.select(selectFields);
+    // }
 
     if (pageNumber && pageSize) {
       modelQuery = modelQuery
@@ -136,16 +141,16 @@ module.exports = {
     }
 
     const documents = await modelQuery;
-    let responseList = [];
-    if (list) {
-      for (const doc of documents) {
-        responseList.push({ _id: doc._id, [list]: doc[list] });
-      }
-    } else {
-      responseList = documents;
-    }
+    // let responseList = [];
+    // if (list) {
+    //   for (const doc of documents) {
+    //     responseList.push({ _id: doc._id, [list]: doc[list] });
+    //   }
+    // } else {
+    //   responseList = documents;
+    // }
 
-    return { documents: responseList, total };
+    return { documents: documents, total };
   },
 
   getOne: async (event, EntityType, errorMessage) => {
@@ -283,7 +288,7 @@ module.exports = {
         if (data.status && data.status !== "Success") {
           const moveModel = await MoveModel.findById(id);
           if (moveModel) {
-            const cusEmail = moveModel.email;
+            const cusEmail = moveModel.phone;
             await Bill.findOneAndUpdate(
               { customer: cusEmail },
               { status: "Inactive" }
