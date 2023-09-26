@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
-const Lead = require("./Lead");
 
 const BillSchema = new Schema({
   customer: {
@@ -18,6 +17,10 @@ const BillSchema = new Schema({
   length: {
     type: String,
   },
+  createdDate: {
+    type: Date,
+    default: Date.now,
+  },
   startDate: {
     type: Date,
   },
@@ -28,16 +31,31 @@ const BillSchema = new Schema({
   inCharge: {
     type: String,
   },
+
+  saleName: {
+    type: String,
+  },
 });
 BillSchema.pre("save", async function (next) {
   try {
-    const email = this.customer;
+    const phone = this.customer;
+    const inCharge = this.inCharge;
+    const saleName = this.saleName;
 
-    await Lead.findOneAndUpdate({ email: email }, { bill: this._id });
-
+    const LeadModel = mongoose.model("Lead");
+    const CustomerModel = mongoose.model("Customer");
+    await LeadModel.findOneAndUpdate(
+      { phone: phone },
+      { bill: this._id, inCharge: inCharge, saleName: saleName }
+    );
+    await CustomerModel.findOneAndUpdate(
+      { phone: phone },
+      { bill: this._id, inCharge: inCharge, saleName: saleName }
+    );
     next();
   } catch (error) {
     next(error);
   }
 });
+
 module.exports = mongoose.model("Bill", BillSchema);

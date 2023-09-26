@@ -14,7 +14,16 @@ module.exports = {
       const { documents, total } = await getDocuments(
         Lead,
         event,
-        ["status", "rep", "org", "email", "phone", "inCharge", "product"],
+        [
+          "status",
+          "rep",
+          "org",
+          "email",
+          "phone",
+          "inCharge",
+          "product",
+          "saleName",
+        ],
         { createdDate: -1 }
       );
       return { leads: documents, total: total };
@@ -28,7 +37,7 @@ module.exports = {
   },
 
   createLead: async (event) => {
-    const inputs = ["phone", "email", "org", "rep", "inCharge"];
+    const inputs = ["phone", "email", "org", "rep", "inCharge", "saleName"];
     return await createOne(event, inputs, Lead);
   },
 
@@ -42,6 +51,7 @@ module.exports = {
       "product",
       "inCharge",
       "trackStatus",
+      "saleName",
     ];
     return await updateOne(event, inputs, Lead, Customer, userEmail);
   },

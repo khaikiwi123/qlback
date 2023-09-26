@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const Log = require("./ChangeLog");
+const Bill = require("./Bill");
 
 const LeadSchema = new mongoose.Schema({
   phone: {
@@ -47,12 +48,16 @@ const LeadSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  saleName: {
+    type: String,
+  },
   product: {
     type: String,
     default: "Chưa có sản phẩm",
   },
   bill: {
     type: mongoose.Schema.Types.ObjectId,
+    ref: "Bill",
   },
   createdBy: {
     type: String,
@@ -62,6 +67,8 @@ const LeadSchema = new mongoose.Schema({
 
 LeadSchema.pre("findOneAndUpdate", async function (next) {
   const docToUpdate = await this.model.findOne(this.getQuery());
+  const newInCharge = this.getUpdate().inCharge;
+  const newSaleName = this.getUpdate().saleName;
   const newStatus = this.getUpdate().status;
   const newProd = this.getUpdate().product;
 
@@ -94,6 +101,13 @@ LeadSchema.pre("findOneAndUpdate", async function (next) {
       changedBy: this._update.userEmail,
       updatedAt: currentDate,
     });
+  }
+  if (newInCharge && docToUpdate.inCharge !== newInCharge) {
+    await Bill.findOneAndUpdate(
+      { _id: docToUpdate.bill },
+      { inCharge: newInCharge },
+      { saleName: newSaleName }
+    );
   }
   next();
 });

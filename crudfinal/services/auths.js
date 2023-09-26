@@ -25,7 +25,7 @@ module.exports = {
     const rToken = jwt.sign({ userId: user._id }, process.env.SECRET, {
       expiresIn: "3d",
     });
-
+    console.log(user.name);
     user.token = rToken;
     await user.save();
 
@@ -33,6 +33,7 @@ module.exports = {
       id: user._id,
       user: user.email,
       role: user.role,
+      name: user.name,
       access: aToken,
       refresh: rToken,
     };

@@ -25,17 +25,7 @@ module.exports = {
       lastUpdated,
       list,
       ...fields
-    } = event.multiValueQueryStringParameters || {};
-    console.log(Model);
-    const getActualValue = (val) => {
-      if (Array.isArray(val)) {
-        if (val.length > 1) {
-          throw new Error("Only one value is allowed per field.");
-        }
-        return val[0];
-      }
-      return val;
-    };
+    } = event.queryStringParameters || {};
 
     const decodedToken = await decodeToken(event);
     const userId = decodedToken.userId;
@@ -44,15 +34,30 @@ module.exports = {
     if (!user) {
       throw new Error("User not found");
     }
+    const listFields = list ? list.split(",") : [];
     let selectFields = {};
-    if (list) {
-      selectFields[list] = 1;
+    if (listFields.length) {
+      selectFields = {};
+      for (const field of listFields) {
+        if (field !== "token" && field !== "password") {
+          selectFields[field] = 1;
+        }
+      }
+      selectFields["_id"] = 1;
+    } else {
+      selectFields = {
+        token: 0,
+        password: 0,
+      };
     }
 
     if (startDate || endDate || createdDate) {
+      let dateField = "createdDate";
+
       let dateQuery = {};
+
       if (createdDate) {
-        const createdDStart = parseDateString(getActualValue(createdDate));
+        const createdDStart = parseDateString(createdDate);
         createdDStart.setHours(0, 0, 0, 0);
 
         const createdDEnd = new Date(createdDStart);
@@ -63,22 +68,22 @@ module.exports = {
       }
 
       if (startDate) {
-        const startJsDate = parseDateString(getActualValue(startDate));
+        const startJsDate = parseDateString(startDate);
         startJsDate.setHours(0, 0, 0, 0);
         dateQuery.$gte = startJsDate;
       }
 
       if (endDate) {
-        const endJsDate = parseDateString(getActualValue(endDate));
+        const endJsDate = parseDateString(endDate);
         endJsDate.setHours(23, 59, 59, 999);
         dateQuery.$lte = endJsDate;
       }
 
-      query.push({ createdDate: dateQuery });
+      query.push({ [dateField]: dateQuery });
     }
     if (lastUpdated) {
       let lastUp = {};
-      const lastUpdate = parseDateString(getActualValue(lastUpdated));
+      const lastUpdate = parseDateString(lastUpdated);
       lastUpdate.setHours(0, 0, 0, 0);
       lastUp.$lte = lastUpdate;
 
@@ -86,8 +91,7 @@ module.exports = {
     }
 
     for (let key of parameters) {
-      const fieldValue = getActualValue(fields[key]);
-      console.log(JSON.stringify(fieldValue));
+      const fieldValue = fields[key];
 
       if (fieldValue) {
         if (key === "status") {
@@ -114,13 +118,10 @@ module.exports = {
 
     const total = await Model.countDocuments(finalQuery);
 
-    let modelQuery = Model.find(finalQuery);
+    let modelQuery = Model.find(finalQuery).select(selectFields);
 
     if (sort) {
       modelQuery = modelQuery.sort(sort);
-    }
-    if (list) {
-      modelQuery = modelQuery.select(selectFields);
     }
 
     if (pageNumber && pageSize) {
@@ -131,9 +132,13 @@ module.exports = {
 
     const documents = await modelQuery;
     let responseList = [];
-    if (list) {
+    if (listFields.length) {
       for (const doc of documents) {
-        responseList.push({ _id: doc._id, [list]: doc[list] });
+        let item = { _id: doc._id };
+        for (const field of listFields) {
+          item[field] = doc[field];
+        }
+        responseList.push(item);
       }
     } else {
       responseList = documents;
@@ -153,12 +158,18 @@ module.exports = {
         throw new Error("User not found");
       }
 
-      const entity = await EntityType.findById(entityId);
+      const entity = await EntityType.findById(entityId)
+        .populate("bill")
+        .exec();
       if (!entity) {
         throw new Error(`${errorMessage} not found`);
       }
 
-      if (entity.inCharge !== user.email && user.role !== "admin") {
+      if (
+        entity.inCharge !== user.email &&
+        user.role !== "admin" &&
+        EntityType !== "Customer"
+      ) {
         const error = new Error("Not authorized");
         error.inCharge = entity.inCharge;
         throw error;
@@ -169,6 +180,7 @@ module.exports = {
       throw error;
     }
   },
+
   createOne: async (event, inputs, Model) => {
     const data = JSON.parse(event.body);
 
@@ -227,6 +239,13 @@ module.exports = {
     let update = {};
     for (const field of inputs) {
       const value = data[field];
+      if (
+        modelData[field] === value ||
+        typeof value === "undefined" ||
+        value === null
+      ) {
+        continue;
+      }
       if (value) {
         switch (field) {
           case "email":
@@ -248,20 +267,23 @@ module.exports = {
                 { product: modelData.prodName },
                 { product: value }
               );
-            } catch (error) {
-              throw new Error("Failed to update Leads", error);
-            }
-            try {
+
               await Customer.updateMany(
                 { product: modelData.prodName },
                 { product: value }
               );
+              await Bill.updateMany(
+                { product: modelData.prodName },
+                { product: value }
+              );
             } catch (error) {
-              throw new Error("Failed to update Leads", error);
+              if (error.message.includes("Lead")) {
+                throw new Error("Failed to update Leads: " + error.message);
+              } else {
+                throw new Error("Failed to update Customers: " + error.message);
+              }
             }
 
-            console.log(modelData.prodName);
-            console.log(value);
             break;
           default:
             update[field] = typeof value === "string" ? value.trim() : value;

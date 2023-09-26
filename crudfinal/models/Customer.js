@@ -25,15 +25,17 @@ const CustomerSchema = new Schema({
     type: String,
     default: "Chưa có sản phẩm",
   },
-  startDate: {
-    type: Date,
-  },
-  endDate: {
-    type: Date,
+
+  bill: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Bill",
   },
   inCharge: {
     type: String,
     required: true,
+  },
+  saleName: {
+    type: String,
   },
 });
 module.exports = mongoose.model("Customer", CustomerSchema);

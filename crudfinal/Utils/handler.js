@@ -16,8 +16,8 @@ module.exports = {
   handleLogin: async (event, context, callback) => {
     try {
       const auth = await authControl.functions(event, context, callback);
-      const { refresh, access, id, role, user } = auth;
-      return createSuccessResponse({ access, refresh, id, role, user });
+      const { refresh, access, id, role, user, name } = auth;
+      return createSuccessResponse({ access, refresh, id, name, role, user });
     } catch (error) {
       return createErrorResponse(500, error.message);
     }

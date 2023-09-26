@@ -51,20 +51,21 @@ module.exports = {
 
     const isAdmin = current.role === "admin";
 
-    if (name && name.trim()) update.name = name.trim();
+    if (name && name.trim() && name.trim() !== user.name)
+      update.name = name.trim();
 
-    if (email && email.trim().toLowerCase() !== user.email) {
+    if (email && email.trim().toLowerCase() !== user.email.toLowerCase()) {
       await validateEmail(email, User);
       update.email = email.trim().toLowerCase();
     }
 
-    if (phone && phone.trim()) {
+    if (phone && phone.trim() && phone.trim() !== user.phone) {
       update.phone = await validatePhone(phone, User);
     }
 
-    if (role) update.role = role;
+    if (role && role !== user.role) update.role = role;
 
-    if (status !== undefined) {
+    if (status !== undefined && status !== user.status) {
       update.status = status;
       if (!status) {
         update.token = "";
@@ -93,7 +94,6 @@ module.exports = {
       throw new Error(error.message);
     }
   },
-
   deleteUser: async (event) => {
     return await deleteOne(event, User);
   },

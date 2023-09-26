@@ -16,9 +16,9 @@ module.exports = {
         "product",
         "length",
         "price",
-        "startDate",
         "status",
         "inCharge",
+        "saleName",
       ]);
       return { bills: documents, total: total };
     } catch (error) {
@@ -37,6 +37,7 @@ module.exports = {
       "price",
       "startDate",
       "inCharge",
+      "saleName",
     ];
     return await createOne(event, inputs, Bill);
   },
@@ -49,6 +50,7 @@ module.exports = {
       "price",
       "startDate",
       "inCharge",
+      "saleName",
     ];
     return await updateOne(event, inputs, Bill);
   },
